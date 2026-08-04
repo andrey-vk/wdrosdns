@@ -1,4 +1,4 @@
-# MikroTik DNS Helper v0.6.2
+# MikroTik DNS Helper v0.6.3
 
 [![License: MIT](https://img.shields.io/github/license/andrey-vk/wdrosdns)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/andrey-vk/wdrosdns)](https://github.com/andrey-vk/wdrosdns/releases/latest)
