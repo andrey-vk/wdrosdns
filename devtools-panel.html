@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MikroTik DNS DevTools</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="devtools">
+  <div class="toolRow">
+    <button id="reloadHar" data-i18n="reloadHar">Reload HAR</button>
+    <input id="filter" class="grow" type="search" data-i18n-placeholder="searchDomains" placeholder="Search">
+    <div class="seg">
+      <button id="segBase" type="button" data-i18n="segBase">Domain</button>
+      <button id="segHost" type="button" data-i18n="segHost">Host</button>
+    </div>
+    <button id="addSelected" class="primary" data-i18n="addSelected">Add selected</button>
+  </div>
+
+  <div class="rowLine">
+    <span id="info" class="faint grow ellipsis"></span>
+    <span id="selectionInfo" class="faint"></span>
+    <button id="toggleAll" class="link" data-i18n="selectAll">select all</button>
+  </div>
+
+  <div id="rows" class="list"></div>
+
+  <section id="resultSection" class="card hidden">
+    <div class="blockHead">
+      <span class="cardTitle" data-i18n="resultTitle">Result</span>
+      <span id="resultSummary" class="faint grow ellipsis"></span>
+    </div>
+    <div id="resultList" class="result"></div>
+    <details id="rawBox" class="rawBox hidden">
+      <summary data-i18n="routerResponse">Router response</summary>
+      <pre id="rawJson"></pre>
+    </details>
+  </section>
+
+  <script type="module" src="devtools-panel.js"></script>
+</body>
+</html>

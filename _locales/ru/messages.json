@@ -1,0 +1,471 @@
+{
+  "addAllCaptured": {
+    "message": "Добавить все собранные"
+  },
+  "addDomains": {
+    "message": "Добавить DNS"
+  },
+  "addFilter": {
+    "message": "Добавить фильтр"
+  },
+  "addFiltered": {
+    "message": "Добавить показанные"
+  },
+  "addSelected": {
+    "message": "Добавить выбранные"
+  },
+  "additionalDomains": {
+    "message": "Дополнительные домены"
+  },
+  "additionalDomainsPlaceholder": {
+    "message": "one.example.com\ntwo.example.com"
+  },
+  "address": {
+    "message": "A address"
+  },
+  "addressList": {
+    "message": "Address list"
+  },
+  "auto": {
+    "message": "Авто"
+  },
+  "checkRouter": {
+    "message": "Проверить роутер"
+  },
+  "chipAll": {
+    "message": "все"
+  },
+  "chipList": {
+    "message": "список: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "chipNoResolve": {
+    "message": "без resolve"
+  },
+  "chipResolve": {
+    "message": "resolve $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "clear": {
+    "message": "Очистить собранное"
+  },
+  "collectNetwork": {
+    "message": "Собрать"
+  },
+  "collectorIdle": {
+    "message": "Нажмите «Собрать», чтобы получить домены текущей вкладки."
+  },
+  "comment": {
+    "message": "Comment"
+  },
+  "confirmDeleteProfile": {
+    "message": "Удалить профиль «$1»?",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "confirmResetFilters": {
+    "message": "Сбросить список Network-фильтров к значениям по умолчанию?"
+  },
+  "confirmUpdateIdentity": {
+    "message": "Изменить identity профиля «$1»?\n\nБыло: $2\nБудет: $3\n\nIP, логин и пароль останутся прежними.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      },
+      "3": {
+        "content": "$3"
+      }
+    }
+  },
+  "copyProfile": {
+    "message": "Копировать"
+  },
+  "createNewProfile": {
+    "message": "Создать новый профиль"
+  },
+  "deleteFilter": {
+    "message": "Удалить фильтр"
+  },
+  "deleteProfile": {
+    "message": "Удалить"
+  },
+  "enableProfileOverrides": {
+    "message": "Использовать настройки этого профиля"
+  },
+  "enabled": {
+    "message": "Вкл"
+  },
+  "errors": {
+    "message": "ошибки: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "extDescription": {
+    "message": "Добавляет домены текущей страницы или Network-запросов в static DNS MikroTik RouterOS."
+  },
+  "extName": {
+    "message": "MikroTik DNS Helper"
+  },
+  "fetchIdentity": {
+    "message": "Получить identity"
+  },
+  "filters": {
+    "message": "Фильтры"
+  },
+  "forwardTo": {
+    "message": "FWD target"
+  },
+  "from": {
+    "message": "От"
+  },
+  "globalDnsDefaults": {
+    "message": "Глобальные DNS-настройки"
+  },
+  "globalDnsHint": {
+    "message": "Применяются ко всем профилям без переопределений."
+  },
+  "hidePassword": {
+    "message": "Скрыть пароль"
+  },
+  "hostsCount": {
+    "message": "хостов: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "identity": {
+    "message": "Identity"
+  },
+  "identityHint": {
+    "message": "Identity можно получить с роутера или указать вручную."
+  },
+  "identityLabel": {
+    "message": "identity: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "identityPlaceholder": {
+    "message": "например Office-Router"
+  },
+  "kind": {
+    "message": "Тип"
+  },
+  "label": {
+    "message": "Название"
+  },
+  "login": {
+    "message": "Login"
+  },
+  "matchSubdomain": {
+    "message": "match-subdomain"
+  },
+  "maxEntriesPerTab": {
+    "message": "Максимум сохранённых запросов на вкладку"
+  },
+  "mismatchText": {
+    "message": "Подключение к профилю «$1» успешно, но identity отличается: ожидалось «$2», получено «$3».",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      },
+      "3": {
+        "content": "$3"
+      }
+    }
+  },
+  "moreActions": {
+    "message": "Другие действия"
+  },
+  "name": {
+    "message": "Название"
+  },
+  "networkCollectorSettings": {
+    "message": "Сбор доменов из Network"
+  },
+  "networkDomains": {
+    "message": "Домены из Network"
+  },
+  "networkInfo": {
+    "message": "запросов: $1 · доменов: $2",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "newProfile": {
+    "message": "Новый"
+  },
+  "noDomainsByFilters": {
+    "message": "Нет доменов по текущим фильтрам. Обновите страницу или включите «показать все»."
+  },
+  "noProfiles": {
+    "message": "Профилей пока нет."
+  },
+  "noteAddFailed": {
+    "message": "не добавлен"
+  },
+  "noteAdded": {
+    "message": "добавлен"
+  },
+  "noteRelated": {
+    "message": "поддомен, только resolve"
+  },
+  "noteResolveOk": {
+    "message": "resolve ok"
+  },
+  "optionsTitle": {
+    "message": "MikroTik DNS — настройки"
+  },
+  "overridden": {
+    "message": "переопределено"
+  },
+  "overridesOn": {
+    "message": "overrides: on"
+  },
+  "password": {
+    "message": "Password"
+  },
+  "pattern": {
+    "message": "Pattern"
+  },
+  "pendingNoDataMs": {
+    "message": "Pending без response headers, ms"
+  },
+  "profile": {
+    "message": "Профиль"
+  },
+  "profileCopy": {
+    "message": "Копия профиля"
+  },
+  "profileNew": {
+    "message": "Новый профиль"
+  },
+  "profiles": {
+    "message": "Профили"
+  },
+  "reasons": {
+    "message": "фильтры: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordChipsTitle": {
+    "message": "Настройки DNS-записи. Нажмите, чтобы открыть настройки."
+  },
+  "recordType": {
+    "message": "Тип записи"
+  },
+  "reloadHar": {
+    "message": "Обновить HAR"
+  },
+  "resetFilters": {
+    "message": "Сбросить фильтры"
+  },
+  "resetToGlobal": {
+    "message": "вернуть глобальное"
+  },
+  "resolveAfterAdd": {
+    "message": "после добавления выполнять :resolve"
+  },
+  "resolveServer": {
+    "message": "сервер для :resolve"
+  },
+  "resultTitle": {
+    "message": "Результат"
+  },
+  "router": {
+    "message": "Роутер"
+  },
+  "routerResponse": {
+    "message": "Ответ роутера"
+  },
+  "routerUrl": {
+    "message": "RouterOS REST URL"
+  },
+  "saveGlobal": {
+    "message": "Сохранить настройки"
+  },
+  "saveProfile": {
+    "message": "Сохранить профиль"
+  },
+  "searchDomains": {
+    "message": "Поиск по домену"
+  },
+  "segBase": {
+    "message": "Домен"
+  },
+  "segHost": {
+    "message": "Хост"
+  },
+  "selectAll": {
+    "message": "выбрать все"
+  },
+  "selectNone": {
+    "message": "снять все"
+  },
+  "selectionInfo": {
+    "message": "выбрано $1 из $2",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "settings": {
+    "message": "Настройки"
+  },
+  "showAll": {
+    "message": "показывать все домены"
+  },
+  "showPassword": {
+    "message": "Показать пароль"
+  },
+  "statusAddFailed": {
+    "message": "Не удалось выполнить добавление."
+  },
+  "statusAdding": {
+    "message": "Добавление..."
+  },
+  "statusChecking": {
+    "message": "Проверка..."
+  },
+  "statusCollecting": {
+    "message": "Сбор..."
+  },
+  "statusFetchingIdentity": {
+    "message": "Получение identity..."
+  },
+  "statusFiltersReset": {
+    "message": "Фильтры сброшены. Нажмите сохранение общих настроек."
+  },
+  "statusGlobalSaved": {
+    "message": "Общие настройки сохранены."
+  },
+  "statusIdentityFetchFailed": {
+    "message": "Не удалось получить identity."
+  },
+  "statusIdentityFetched": {
+    "message": "Identity получен: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusIdentityMismatch": {
+    "message": "Identity отличается."
+  },
+  "statusIdentityUpdateFailed": {
+    "message": "Не удалось изменить identity профиля."
+  },
+  "statusNeedProfileFields": {
+    "message": "Нужны название, URL, login и identity."
+  },
+  "statusNeedUrlLogin": {
+    "message": "Нужны URL и login."
+  },
+  "statusNetworkFailed": {
+    "message": "Не удалось собрать Network."
+  },
+  "statusNoDomains": {
+    "message": "Нет доменов."
+  },
+  "statusNoProfiles": {
+    "message": "Нет сохранённых профилей MikroTik."
+  },
+  "statusNoRouter": {
+    "message": "Ни один сохранённый роутер не обнаружен."
+  },
+  "statusNoSavedProfileSelected": {
+    "message": "Не выбран сохранённый профиль."
+  },
+  "statusNoTab": {
+    "message": "Не удалось определить текущую вкладку."
+  },
+  "statusNothingToCopy": {
+    "message": "Нечего копировать."
+  },
+  "statusProfileCopied": {
+    "message": "Профиль скопирован. Identity можно изменить вручную или получить с роутера."
+  },
+  "statusProfileDeleted": {
+    "message": "Профиль удалён."
+  },
+  "statusProfileSaved": {
+    "message": "Профиль сохранён."
+  },
+  "summaryAdded": {
+    "message": "добавлено $1 из $2",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "summaryResolved": {
+    "message": "resolve $1 из $2 через $3",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      },
+      "3": {
+        "content": "$3"
+      }
+    }
+  },
+  "timeoutMs": {
+    "message": "Timeout, ms"
+  },
+  "to": {
+    "message": "До"
+  },
+  "trimBaseDomain": {
+    "message": "только основной домен"
+  },
+  "unsavedChanges": {
+    "message": "Есть несохранённые изменения"
+  },
+  "updateProfileIdentity": {
+    "message": "Изменить identity у найденного профиля"
+  }
+}

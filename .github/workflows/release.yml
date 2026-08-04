@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run validate:manifest
+
+      - name: Package extension
+        run: |
+          mkdir -p dist/wdrosdns
+          cp manifest.json background.js common.js devtools.html devtools.js \
+             devtools-panel.html devtools-panel.js i18n.js options.html options.js \
+             popup.html popup.js result-view.js style.css dist/wdrosdns/
+          cp -r _locales icons dist/wdrosdns/
+          cd dist
+          zip -r "../wdrosdns-${GITHUB_REF_NAME}.zip" wdrosdns
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wdrosdns-${{ github.ref_name }}.zip
+          generate_release_notes: true

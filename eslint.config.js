@@ -1,0 +1,36 @@
+export default [
+  {
+    files: ["**/*.js"],
+    ignores: ["icons/**"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "module",
+      globals: {
+        chrome: "readonly",
+        window: "readonly",
+        document: "readonly",
+        console: "readonly",
+        fetch: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        AbortController: "readonly",
+        setTimeout: "readonly",
+        clearTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        localStorage: "readonly",
+        navigator: "readonly",
+        location: "readonly",
+        crypto: "readonly",
+        btoa: "readonly",
+        atob: "readonly",
+        confirm: "readonly",
+        alert: "readonly",
+      },
+    },
+    rules: {
+      "no-unused-vars": "warn",
+      "no-undef": "error",
+    },
+  },
+];

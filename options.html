@@ -1,0 +1,254 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MikroTik DNS settings</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="options">
+  <header class="optionsHeader">
+    <h1 data-i18n="optionsTitle">MikroTik DNS settings</h1>
+    <nav class="tabs">
+      <button data-goto="secProfile" data-i18n="profile">Profile</button>
+      <button data-goto="secDns" data-i18n="globalDnsDefaults">DNS defaults</button>
+      <button data-goto="secCollector" data-i18n="networkCollectorSettings">Network collector</button>
+    </nav>
+  </header>
+
+  <main class="settingsShell">
+    <aside class="card profilesPane">
+      <div class="sectionHeader">
+        <h2 data-i18n="profiles">Profiles</h2>
+        <button id="newProfile" class="quiet" data-i18n="newProfile">New</button>
+      </div>
+      <div id="profileList" class="profileList"></div>
+    </aside>
+
+    <section class="settingsMain">
+      <section class="card" id="secProfile">
+        <div class="sectionHeader">
+          <h2 id="formTitle" data-i18n="profile">Profile</h2>
+          <div class="buttonRow">
+            <button id="copyProfile" class="quiet" data-i18n="copyProfile">Copy</button>
+            <button id="deleteProfile" class="quiet danger" data-i18n="deleteProfile">Delete</button>
+          </div>
+        </div>
+
+        <div class="formGrid">
+          <label>
+            <span data-i18n="name">Name</span>
+            <input id="name" type="text">
+          </label>
+
+          <label>
+            <span data-i18n="routerUrl">RouterOS REST URL</span>
+            <input id="url" type="text" placeholder="https://192.168.88.1">
+          </label>
+
+          <label>
+            <span data-i18n="login">Login</span>
+            <input id="login" type="text">
+          </label>
+
+          <label>
+            <span data-i18n="password">Password</span>
+            <div class="inlineField">
+              <input id="password" type="password">
+              <button id="togglePassword" class="iconBtn" type="button" data-i18n-title="showPassword" title="Show password">👁</button>
+            </div>
+          </label>
+
+          <label class="wide">
+            <span data-i18n="identity">Identity</span>
+            <div class="inlineField">
+              <input id="expectedIdentity" type="text" data-i18n-placeholder="identityPlaceholder" placeholder="e.g. Office-Router">
+              <button id="fetchIdentity" data-i18n="fetchIdentity">Fetch identity</button>
+            </div>
+          </label>
+        </div>
+
+        <p class="hint" data-i18n="identityHint">Identity can be fetched from the router or entered manually.</p>
+
+        <details class="overrideDetails" id="profileOverridesDetails">
+          <summary>
+            <label class="pillCheck">
+              <input id="profileOverrideEnabled" type="checkbox">
+              <span data-i18n="enableProfileOverrides">Use profile-specific settings</span>
+            </label>
+          </summary>
+
+          <div id="profileOverridesBox" class="overrideBody">
+            <div class="formGrid">
+              <label>
+                <span class="fieldHead"><span data-i18n="recordType">Record type</span><span class="overrideMark" data-for="poRecordType"></span></span>
+                <select id="poRecordType">
+                  <option value="FWD">FWD</option>
+                  <option value="A">A</option>
+                </select>
+              </label>
+
+              <label id="poAddressField">
+                <span class="fieldHead"><span data-i18n="address">A address</span><span class="overrideMark" data-for="poRecordAddress"></span></span>
+                <input id="poRecordAddress" type="text" placeholder="192.168.88.1">
+              </label>
+
+              <label id="poForwardField">
+                <span class="fieldHead"><span data-i18n="forwardTo">FWD target</span><span class="overrideMark" data-for="poRecordForwardTo"></span></span>
+                <input id="poRecordForwardTo" type="text" placeholder="8.8.8.8">
+              </label>
+
+              <label>
+                <span class="fieldHead"><span data-i18n="addressList">Address list</span><span class="overrideMark" data-for="poRecordAddressList"></span></span>
+                <input id="poRecordAddressList" type="text">
+              </label>
+
+              <label class="wide">
+                <span class="fieldHead"><span data-i18n="comment">Comment</span><span class="overrideMark" data-for="poRecordComment"></span></span>
+                <input id="poRecordComment" type="text">
+              </label>
+
+              <label>
+                <span class="fieldHead"><span data-i18n="resolveServer">:resolve server</span><span class="overrideMark" data-for="poResolveServer"></span></span>
+                <input id="poResolveServer" type="text" placeholder="127.0.0.1">
+              </label>
+
+              <label>
+                <span class="fieldHead"><span data-i18n="timeoutMs">Timeout, ms</span><span class="overrideMark" data-for="poRequestTimeoutMs"></span></span>
+                <input id="poRequestTimeoutMs" type="number" min="500" step="500">
+              </label>
+
+              <label class="checkLine">
+                <input id="poRecordMatchSubdomain" type="checkbox">
+                <span data-i18n="matchSubdomain">match-subdomain</span>
+                <span class="overrideMark" data-for="poRecordMatchSubdomain"></span>
+              </label>
+
+              <label class="checkLine">
+                <input id="poDefaultTrimToBaseDomain" type="checkbox">
+                <span data-i18n="trimBaseDomain">base domain only</span>
+                <span class="overrideMark" data-for="poDefaultTrimToBaseDomain"></span>
+              </label>
+
+              <label class="checkLine">
+                <input id="poDoResolveAfterAdd" type="checkbox">
+                <span data-i18n="resolveAfterAdd">run :resolve after adding</span>
+                <span class="overrideMark" data-for="poDoResolveAfterAdd"></span>
+              </label>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <section class="card" id="secDns">
+        <div class="sectionHeader">
+          <h2 data-i18n="globalDnsDefaults">Global DNS defaults</h2>
+          <span class="hint" data-i18n="globalDnsHint">Used by every profile without overrides.</span>
+        </div>
+
+        <div class="formGrid">
+          <label>
+            <span data-i18n="recordType">Record type</span>
+            <select id="recordType">
+              <option value="FWD">FWD</option>
+              <option value="A">A</option>
+            </select>
+          </label>
+
+          <label id="addressField">
+            <span data-i18n="address">A address</span>
+            <input id="recordAddress" type="text" placeholder="192.168.88.1">
+          </label>
+
+          <label id="forwardField">
+            <span data-i18n="forwardTo">FWD target</span>
+            <input id="recordForwardTo" type="text" placeholder="8.8.8.8">
+          </label>
+
+          <label>
+            <span data-i18n="addressList">Address list</span>
+            <input id="recordAddressList" type="text">
+          </label>
+
+          <label class="wide">
+            <span data-i18n="comment">Comment</span>
+            <input id="recordComment" type="text">
+          </label>
+
+          <label>
+            <span data-i18n="resolveServer">:resolve server</span>
+            <input id="resolveServer" type="text" placeholder="127.0.0.1">
+          </label>
+
+          <label>
+            <span data-i18n="timeoutMs">Timeout, ms</span>
+            <input id="requestTimeoutMs" type="number" min="500" step="500">
+          </label>
+
+          <label class="checkLine">
+            <input id="recordMatchSubdomain" type="checkbox">
+            <span data-i18n="matchSubdomain">match-subdomain</span>
+          </label>
+
+          <label class="checkLine">
+            <input id="defaultTrimToBaseDomain" type="checkbox">
+            <span data-i18n="trimBaseDomain">base domain only</span>
+          </label>
+
+          <label class="checkLine">
+            <input id="doResolveAfterAdd" type="checkbox">
+            <span data-i18n="resolveAfterAdd">run :resolve after adding</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card" id="secCollector">
+        <div class="sectionHeader">
+          <h2 data-i18n="networkCollectorSettings">Network collector</h2>
+          <div class="buttonRow">
+            <button id="addCollectorFilter" class="quiet" data-i18n="addFilter">Add filter</button>
+            <button id="resetCollectorFilters" class="quiet" data-i18n="resetFilters">Reset filters</button>
+          </div>
+        </div>
+
+        <div class="formGrid">
+          <label>
+            <span data-i18n="pendingNoDataMs">Pending without response headers, ms</span>
+            <input id="collectorPendingNoDataMs" type="number" min="500" step="500">
+          </label>
+
+          <label>
+            <span data-i18n="maxEntriesPerTab">Max saved requests per tab</span>
+            <input id="collectorMaxEntriesPerTab" type="number" min="100" step="100">
+          </label>
+        </div>
+
+        <div class="tableWrap" style="margin-top: 12px;">
+          <table class="filtersTable">
+            <thead>
+              <tr>
+                <th data-i18n="enabled">On</th>
+                <th data-i18n="label">Label</th>
+                <th data-i18n="kind">Kind</th>
+                <th data-i18n="from">From</th>
+                <th data-i18n="to">To</th>
+                <th data-i18n="pattern">Pattern</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="collectorFiltersBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="saveBar">
+    <span id="dirtyMark" class="dirtyMark hidden" data-i18n="unsavedChanges">Unsaved changes</span>
+    <div id="status" class="status"></div>
+    <button id="saveProfile" data-i18n="saveProfile">Save profile</button>
+    <button id="saveGlobal" class="primary" data-i18n="saveGlobal">Save settings</button>
+  </div>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>

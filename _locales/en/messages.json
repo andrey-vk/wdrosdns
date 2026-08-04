@@ -1,0 +1,471 @@
+{
+  "addAllCaptured": {
+    "message": "Add all captured"
+  },
+  "addDomains": {
+    "message": "Add DNS"
+  },
+  "addFilter": {
+    "message": "Add filter"
+  },
+  "addFiltered": {
+    "message": "Add shown"
+  },
+  "addSelected": {
+    "message": "Add selected"
+  },
+  "additionalDomains": {
+    "message": "Additional domains"
+  },
+  "additionalDomainsPlaceholder": {
+    "message": "one.example.com\ntwo.example.com"
+  },
+  "address": {
+    "message": "A address"
+  },
+  "addressList": {
+    "message": "Address list"
+  },
+  "auto": {
+    "message": "Auto"
+  },
+  "checkRouter": {
+    "message": "Check router"
+  },
+  "chipAll": {
+    "message": "all"
+  },
+  "chipList": {
+    "message": "list: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "chipNoResolve": {
+    "message": "no resolve"
+  },
+  "chipResolve": {
+    "message": "resolve $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "clear": {
+    "message": "Clear captured"
+  },
+  "collectNetwork": {
+    "message": "Collect"
+  },
+  "collectorIdle": {
+    "message": "Press Collect to read domains from the current tab."
+  },
+  "comment": {
+    "message": "Comment"
+  },
+  "confirmDeleteProfile": {
+    "message": "Delete profile “$1”?",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "confirmResetFilters": {
+    "message": "Reset Network filters to defaults?"
+  },
+  "confirmUpdateIdentity": {
+    "message": "Update identity for profile “$1”?\n\nOld: $2\nNew: $3\n\nIP, login and password will not change.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      },
+      "3": {
+        "content": "$3"
+      }
+    }
+  },
+  "copyProfile": {
+    "message": "Copy"
+  },
+  "createNewProfile": {
+    "message": "Create new profile"
+  },
+  "deleteFilter": {
+    "message": "Delete filter"
+  },
+  "deleteProfile": {
+    "message": "Delete"
+  },
+  "enableProfileOverrides": {
+    "message": "Use profile-specific settings"
+  },
+  "enabled": {
+    "message": "Enabled"
+  },
+  "errors": {
+    "message": "errors: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "extDescription": {
+    "message": "Adds current page or Network request domains to MikroTik RouterOS static DNS."
+  },
+  "extName": {
+    "message": "MikroTik DNS Helper"
+  },
+  "fetchIdentity": {
+    "message": "Fetch identity"
+  },
+  "filters": {
+    "message": "Filters"
+  },
+  "forwardTo": {
+    "message": "FWD target"
+  },
+  "from": {
+    "message": "From"
+  },
+  "globalDnsDefaults": {
+    "message": "Global DNS defaults"
+  },
+  "globalDnsHint": {
+    "message": "Used by every profile without overrides."
+  },
+  "hidePassword": {
+    "message": "Hide password"
+  },
+  "hostsCount": {
+    "message": "hosts: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "identity": {
+    "message": "Identity"
+  },
+  "identityHint": {
+    "message": "Identity can be fetched from the router or entered manually."
+  },
+  "identityLabel": {
+    "message": "identity: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "identityPlaceholder": {
+    "message": "e.g. Office-Router"
+  },
+  "kind": {
+    "message": "Kind"
+  },
+  "label": {
+    "message": "Label"
+  },
+  "login": {
+    "message": "Login"
+  },
+  "matchSubdomain": {
+    "message": "match-subdomain"
+  },
+  "maxEntriesPerTab": {
+    "message": "Max saved requests per tab"
+  },
+  "mismatchText": {
+    "message": "Connected to profile “$1”, but identity differs: expected “$2”, got “$3”.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      },
+      "3": {
+        "content": "$3"
+      }
+    }
+  },
+  "moreActions": {
+    "message": "More actions"
+  },
+  "name": {
+    "message": "Name"
+  },
+  "networkCollectorSettings": {
+    "message": "Network collector"
+  },
+  "networkDomains": {
+    "message": "Network domains"
+  },
+  "networkInfo": {
+    "message": "$1 requests · $2 domains",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "newProfile": {
+    "message": "New"
+  },
+  "noDomainsByFilters": {
+    "message": "No domains match current filters. Reload the page or enable “show all”."
+  },
+  "noProfiles": {
+    "message": "No profiles yet."
+  },
+  "noteAddFailed": {
+    "message": "not added"
+  },
+  "noteAdded": {
+    "message": "added"
+  },
+  "noteRelated": {
+    "message": "subdomain, resolve only"
+  },
+  "noteResolveOk": {
+    "message": "resolve ok"
+  },
+  "optionsTitle": {
+    "message": "MikroTik DNS settings"
+  },
+  "overridden": {
+    "message": "overridden"
+  },
+  "overridesOn": {
+    "message": "overrides: on"
+  },
+  "password": {
+    "message": "Password"
+  },
+  "pattern": {
+    "message": "Pattern"
+  },
+  "pendingNoDataMs": {
+    "message": "Pending without response headers, ms"
+  },
+  "profile": {
+    "message": "Profile"
+  },
+  "profileCopy": {
+    "message": "Profile copy"
+  },
+  "profileNew": {
+    "message": "New profile"
+  },
+  "profiles": {
+    "message": "Profiles"
+  },
+  "reasons": {
+    "message": "filters: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordChipsTitle": {
+    "message": "DNS record settings. Click to open settings."
+  },
+  "recordType": {
+    "message": "Record type"
+  },
+  "reloadHar": {
+    "message": "Reload HAR"
+  },
+  "resetFilters": {
+    "message": "Reset filters"
+  },
+  "resetToGlobal": {
+    "message": "reset to global"
+  },
+  "resolveAfterAdd": {
+    "message": "run :resolve after adding"
+  },
+  "resolveServer": {
+    "message": ":resolve server"
+  },
+  "resultTitle": {
+    "message": "Result"
+  },
+  "router": {
+    "message": "Router"
+  },
+  "routerResponse": {
+    "message": "Router response"
+  },
+  "routerUrl": {
+    "message": "RouterOS REST URL"
+  },
+  "saveGlobal": {
+    "message": "Save settings"
+  },
+  "saveProfile": {
+    "message": "Save profile"
+  },
+  "searchDomains": {
+    "message": "Search domains"
+  },
+  "segBase": {
+    "message": "Domain"
+  },
+  "segHost": {
+    "message": "Host"
+  },
+  "selectAll": {
+    "message": "select all"
+  },
+  "selectNone": {
+    "message": "select none"
+  },
+  "selectionInfo": {
+    "message": "$1 of $2 selected",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "showAll": {
+    "message": "show all domains"
+  },
+  "showPassword": {
+    "message": "Show password"
+  },
+  "statusAddFailed": {
+    "message": "The add request could not be completed."
+  },
+  "statusAdding": {
+    "message": "Adding..."
+  },
+  "statusChecking": {
+    "message": "Checking..."
+  },
+  "statusCollecting": {
+    "message": "Collecting..."
+  },
+  "statusFetchingIdentity": {
+    "message": "Fetching identity..."
+  },
+  "statusFiltersReset": {
+    "message": "Filters reset. Save global settings to persist."
+  },
+  "statusGlobalSaved": {
+    "message": "Global settings saved."
+  },
+  "statusIdentityFetchFailed": {
+    "message": "Cannot fetch identity."
+  },
+  "statusIdentityFetched": {
+    "message": "Identity fetched: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusIdentityMismatch": {
+    "message": "Identity differs."
+  },
+  "statusIdentityUpdateFailed": {
+    "message": "Cannot update profile identity."
+  },
+  "statusNeedProfileFields": {
+    "message": "Name, URL, login and identity are required."
+  },
+  "statusNeedUrlLogin": {
+    "message": "URL and login are required."
+  },
+  "statusNetworkFailed": {
+    "message": "Cannot collect Network data."
+  },
+  "statusNoDomains": {
+    "message": "No domains."
+  },
+  "statusNoProfiles": {
+    "message": "No saved MikroTik profiles."
+  },
+  "statusNoRouter": {
+    "message": "No saved router was detected."
+  },
+  "statusNoSavedProfileSelected": {
+    "message": "No saved profile selected."
+  },
+  "statusNoTab": {
+    "message": "Cannot detect current tab."
+  },
+  "statusNothingToCopy": {
+    "message": "Nothing to copy."
+  },
+  "statusProfileCopied": {
+    "message": "Profile copied. Identity can be edited manually or fetched from the router."
+  },
+  "statusProfileDeleted": {
+    "message": "Profile deleted."
+  },
+  "statusProfileSaved": {
+    "message": "Profile saved."
+  },
+  "summaryAdded": {
+    "message": "added $1 of $2",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "summaryResolved": {
+    "message": "resolve $1 of $2 via $3",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      },
+      "3": {
+        "content": "$3"
+      }
+    }
+  },
+  "timeoutMs": {
+    "message": "Timeout, ms"
+  },
+  "to": {
+    "message": "To"
+  },
+  "trimBaseDomain": {
+    "message": "base domain only"
+  },
+  "unsavedChanges": {
+    "message": "Unsaved changes"
+  },
+  "updateProfileIdentity": {
+    "message": "Update identity in this profile"
+  }
+}

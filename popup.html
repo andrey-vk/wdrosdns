@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>MikroTik DNS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="popup">
+  <header class="appBar">
+    <span id="routerDot" class="dot"></span>
+    <div class="grow">
+      <div id="routerName" class="routerName ellipsis" data-i18n="auto">Auto</div>
+      <div id="routerMeta" class="faint ellipsis"></div>
+    </div>
+    <div class="popWrap">
+      <button id="profileBtn" class="iconBtn" data-i18n-title="router" title="Router">▾</button>
+      <div id="profilePopover" class="popover hidden"></div>
+    </div>
+    <button id="detectBtn" class="iconBtn" data-i18n-title="checkRouter" title="Check router">↻</button>
+    <button id="openOptions" class="iconBtn" data-i18n-title="settings" title="Settings">⚙</button>
+  </header>
+
+  <main>
+    <section>
+      <div class="domainInput">
+        <input id="currentDomain" class="grow" type="text" spellcheck="false">
+        <div class="seg">
+          <button id="segBase" type="button" data-i18n="segBase">Domain</button>
+          <button id="segHost" type="button" data-i18n="segHost">Host</button>
+        </div>
+      </div>
+
+      <div id="recordChips" class="badgeRow recordChips" data-i18n-title="recordChipsTitle" title="DNS record settings"></div>
+
+      <details class="extraBox">
+        <summary data-i18n="additionalDomains">Additional domains</summary>
+        <textarea id="extraDomains" rows="3" data-i18n-placeholder="additionalDomainsPlaceholder" placeholder="one.example.com&#10;two.example.com"></textarea>
+      </details>
+
+      <div class="buttonRow right">
+        <button id="addBtn" class="primary" data-i18n="addDomains">Add DNS</button>
+      </div>
+    </section>
+
+    <section>
+      <div class="blockHead">
+        <span class="cardTitle" data-i18n="networkDomains">Network domains</span>
+        <span id="collectorInfo" class="faint grow ellipsis"></span>
+        <button id="collectNetworkBtn" class="quiet" data-i18n="collectNetwork">Collect</button>
+        <button id="clearNetworkBtn" class="iconBtn sm quiet" data-i18n-title="clear" title="Clear">✕</button>
+      </div>
+
+      <div class="toolRow">
+        <input id="collectorSearch" class="grow" type="search" data-i18n-placeholder="searchDomains" placeholder="Search">
+        <div class="popWrap">
+          <button id="filtersBtn"><span data-i18n="filters">Filters</span> <span id="filtersCount" class="badge accent"></span></button>
+          <div id="filtersPopover" class="popover hidden"></div>
+        </div>
+      </div>
+
+      <div id="collectorList" class="list"></div>
+
+      <div class="listFoot">
+        <span id="selectionInfo" class="faint"></span>
+        <button id="toggleAll" class="link" data-i18n="selectAll">select all</button>
+        <span class="grow"></span>
+        <div class="popWrap splitBtn">
+          <button id="addSelectedNetwork" data-i18n="addSelected">Add selected</button>
+          <button id="moreAddBtn" data-i18n-title="moreActions" title="More">▾</button>
+          <div id="moreAddPopover" class="popover hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="mismatchBox" class="hidden">
+      <div class="notice">
+        <div id="mismatchText"></div>
+        <div class="buttonRow">
+          <button id="createFromDetected" data-i18n="createNewProfile">Create new profile</button>
+          <button id="updateDetectedIdentity" data-i18n="updateProfileIdentity">Update identity</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultSection" class="hidden">
+      <div class="blockHead">
+        <span class="cardTitle" data-i18n="resultTitle">Result</span>
+        <span id="resultSummary" class="faint grow ellipsis"></span>
+      </div>
+      <div id="resultList" class="result"></div>
+      <details id="rawBox" class="rawBox hidden">
+        <summary data-i18n="routerResponse">Router response</summary>
+        <pre id="rawJson"></pre>
+      </details>
+    </section>
+  </main>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
