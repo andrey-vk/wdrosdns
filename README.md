@@ -5,7 +5,7 @@
 [![Lint](https://img.shields.io/github/actions/workflow/status/andrey-vk/wdrosdns/lint.yml?branch=main&label=lint)](https://github.com/andrey-vk/wdrosdns/actions/workflows/lint.yml)
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-blue)](manifest.json)
 
-🇷🇺 [Русская версия](README.ru.md)
+🇷🇺 [Русская версия](README.ru.md) · [Changelog](CHANGELOG.md)
 
 Edge/Chrome MV3 extension for adding current page domains and Network request domains to MikroTik RouterOS static DNS through the RouterOS REST API.
 

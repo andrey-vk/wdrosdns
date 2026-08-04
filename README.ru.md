@@ -5,7 +5,7 @@
 [![Lint](https://img.shields.io/github/actions/workflow/status/andrey-vk/wdrosdns/lint.yml?branch=main&label=lint)](https://github.com/andrey-vk/wdrosdns/actions/workflows/lint.yml)
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-blue)](manifest.json)
 
-🇬🇧 [English version](README.md)
+🇬🇧 [English version](README.md) · [История изменений](CHANGELOG.md)
 
 Расширение Edge/Chrome (Manifest V3) для добавления доменов текущей страницы и доменов из
 сетевых запросов в статические DNS-записи MikroTik RouterOS через REST API RouterOS.
