@@ -18,6 +18,12 @@ applyI18n();
 const $ = id => document.getElementById(id);
 
 const f = {
+  navGlobal: $("navGlobal"),
+  navCollector: $("navCollector"),
+  secProfile: $("secProfile"),
+  secDns: $("secDns"),
+  secCollector: $("secCollector"),
+
   profileList: $("profileList"),
   formTitle: $("formTitle"),
   name: $("name"),
@@ -222,6 +228,19 @@ function readProfileOverridesFromForm() {
   };
 }
 
+function showView(view) {
+  f.secProfile.classList.toggle("hidden", view !== "profile");
+  f.secDns.classList.toggle("hidden", view !== "global");
+  f.secCollector.classList.toggle("hidden", view !== "collector");
+
+  f.navGlobal.classList.toggle("active", view === "global");
+  f.navCollector.classList.toggle("active", view === "collector");
+
+  if (view !== "profile") {
+    f.profileList.querySelectorAll(".profileItem").forEach(el => el.classList.remove("active"));
+  }
+}
+
 function clearForm() {
   editingId = null;
   f.formTitle.textContent = t("profileNew");
@@ -232,6 +251,7 @@ function clearForm() {
   f.expectedIdentity.value = "";
   fillProfileOverrides();
   renderProfiles();
+  showView("profile");
 }
 
 function fillForm(profile, asCopy = false) {
@@ -246,6 +266,7 @@ function fillForm(profile, asCopy = false) {
 
   fillProfileOverrides(profile.overrides);
   renderProfiles();
+  showView("profile");
 }
 
 function readProfileFromForm() {
@@ -448,13 +469,8 @@ async function init() {
 
 /* --- events --- */
 
-document.querySelectorAll("[data-goto]").forEach(button => {
-  button.addEventListener("click", () => {
-    document.querySelectorAll("[data-goto]").forEach(b => b.classList.remove("active"));
-    button.classList.add("active");
-    $(button.dataset.goto).scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-});
+f.navGlobal.addEventListener("click", () => showView("global"));
+f.navCollector.addEventListener("click", () => showView("collector"));
 
 document.querySelector("main").addEventListener("input", () => setDirty(true));
 document.querySelector("main").addEventListener("change", () => setDirty(true));

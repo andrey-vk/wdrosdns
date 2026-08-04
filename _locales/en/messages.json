@@ -136,7 +136,7 @@
     "message": "From"
   },
   "globalDnsDefaults": {
-    "message": "Global DNS defaults"
+    "message": "Global RouterOS settings"
   },
   "globalDnsHint": {
     "message": "Used by every profile without overrides."

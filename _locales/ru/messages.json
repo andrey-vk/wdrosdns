@@ -136,7 +136,7 @@
     "message": "От"
   },
   "globalDnsDefaults": {
-    "message": "Глобальные DNS-настройки"
+    "message": "Глобальные настройки RouterOS"
   },
   "globalDnsHint": {
     "message": "Применяются ко всем профилям без переопределений."

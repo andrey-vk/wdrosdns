@@ -666,31 +666,9 @@ button.iconBtn.sm {
   border-bottom: 1px solid var(--border);
 }
 
-.tabs {
-  display: flex;
-  gap: 2px;
-  margin-left: auto;
-}
-
-.tabs button {
-  border-color: transparent;
-  background: transparent;
-  color: var(--muted);
-}
-
-.tabs button:hover {
-  background: var(--panel-2);
-  color: var(--text);
-}
-
-.tabs button.active {
-  background: var(--accent-bg);
-  color: var(--accent);
-}
-
 .settingsShell {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 16px;
   padding: 16px 24px 96px;
   align-items: start;
@@ -701,6 +679,32 @@ button.iconBtn.sm {
   top: 72px;
   max-height: calc(100vh - 160px);
   overflow: auto;
+}
+
+.settingsNav {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settingsNav .navItem {
+  justify-content: flex-start;
+  text-align: left;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+
+.settingsNav .navItem:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.settingsNav .navItem.active {
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 .profileList {

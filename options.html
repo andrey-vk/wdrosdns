@@ -8,22 +8,9 @@
 <body class="options">
   <header class="optionsHeader">
     <h1 data-i18n="optionsTitle">MikroTik DNS settings</h1>
-    <nav class="tabs">
-      <button data-goto="secProfile" data-i18n="profile">Profile</button>
-      <button data-goto="secDns" data-i18n="globalDnsDefaults">DNS defaults</button>
-      <button data-goto="secCollector" data-i18n="networkCollectorSettings">Network collector</button>
-    </nav>
   </header>
 
   <main class="settingsShell">
-    <aside class="card profilesPane">
-      <div class="sectionHeader">
-        <h2 data-i18n="profiles">Profiles</h2>
-        <button id="newProfile" class="quiet" data-i18n="newProfile">New</button>
-      </div>
-      <div id="profileList" class="profileList"></div>
-    </aside>
-
     <section class="settingsMain">
       <section class="card" id="secProfile">
         <div class="sectionHeader">
@@ -141,7 +128,7 @@
 
       <section class="card" id="secDns">
         <div class="sectionHeader">
-          <h2 data-i18n="globalDnsDefaults">Global DNS defaults</h2>
+          <h2 data-i18n="globalDnsDefaults">Global RouterOS settings</h2>
           <span class="hint" data-i18n="globalDnsHint">Used by every profile without overrides.</span>
         </div>
 
@@ -240,6 +227,19 @@
         </div>
       </section>
     </section>
+
+    <aside class="card profilesPane">
+      <nav class="settingsNav">
+        <button class="navItem" id="navGlobal" data-i18n="globalDnsDefaults">Global RouterOS settings</button>
+        <button class="navItem" id="navCollector" data-i18n="networkCollectorSettings">Network collector</button>
+      </nav>
+
+      <div class="sectionHeader">
+        <h2 data-i18n="profiles">Profiles</h2>
+        <button id="newProfile" class="quiet" data-i18n="newProfile">New</button>
+      </div>
+      <div id="profileList" class="profileList"></div>
+    </aside>
   </main>
 
   <div class="saveBar">

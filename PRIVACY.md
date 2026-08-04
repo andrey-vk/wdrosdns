@@ -1,5 +1,7 @@
 # Privacy Policy
 
+🇷🇺 [Русская версия](PRIVACY.ru.md)
+
 **MikroTik DNS Helper** does not collect, transmit, or sell any user data to the developer
 or any third party. There is no telemetry, analytics, or remote logging of any kind.
 

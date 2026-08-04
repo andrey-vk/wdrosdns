@@ -1,5 +1,12 @@
 # MikroTik DNS Helper v0.6.1
 
+[![License: MIT](https://img.shields.io/github/license/andrey-vk/wdrosdns)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/andrey-vk/wdrosdns)](https://github.com/andrey-vk/wdrosdns/releases/latest)
+[![Lint](https://img.shields.io/github/actions/workflow/status/andrey-vk/wdrosdns/lint.yml?branch=main&label=lint)](https://github.com/andrey-vk/wdrosdns/actions/workflows/lint.yml)
+[![Manifest V3](https://img.shields.io/badge/manifest-v3-blue)](manifest.json)
+
+🇷🇺 [Русская версия](README.ru.md)
+
 Edge/Chrome MV3 extension for adding current page domains and Network request domains to MikroTik RouterOS static DNS through the RouterOS REST API.
 
 ## Main features
@@ -22,8 +29,8 @@ Edge/Chrome MV3 extension for adding current page domains and Network request do
 
 ### Options page
 
-Two-column layout: profile list on the left, three sections on the right (profile, global DNS
-defaults, network collector) with anchor tabs in the header.
+A right-side panel groups `Global RouterOS settings`, `Network collector`, and the `Profiles`
+list; clicking any of them shows just that section in the main area.
 
 - Record fields follow the record type: `A` shows `address`, `FWD` shows `forward-to`.
 - Profile overrides mark every field that differs from the global value and offer a one-click
