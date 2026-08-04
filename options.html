@@ -11,6 +11,19 @@
   </header>
 
   <main class="settingsShell">
+    <aside class="card profilesPane">
+      <nav class="settingsNav">
+        <button class="navItem" id="navGlobal" data-i18n="globalDnsDefaults">Global RouterOS settings</button>
+        <button class="navItem" id="navCollector" data-i18n="networkCollectorSettings">Network collector</button>
+      </nav>
+
+      <div class="sectionHeader">
+        <h2 data-i18n="profiles">Profiles</h2>
+        <button id="newProfile" class="quiet" data-i18n="newProfile">New</button>
+      </div>
+      <div id="profileList" class="profileList"></div>
+    </aside>
+
     <section class="settingsMain">
       <section class="card" id="secProfile">
         <div class="sectionHeader">
@@ -227,19 +240,6 @@
         </div>
       </section>
     </section>
-
-    <aside class="card profilesPane">
-      <nav class="settingsNav">
-        <button class="navItem" id="navGlobal" data-i18n="globalDnsDefaults">Global RouterOS settings</button>
-        <button class="navItem" id="navCollector" data-i18n="networkCollectorSettings">Network collector</button>
-      </nav>
-
-      <div class="sectionHeader">
-        <h2 data-i18n="profiles">Profiles</h2>
-        <button id="newProfile" class="quiet" data-i18n="newProfile">New</button>
-      </div>
-      <div id="profileList" class="profileList"></div>
-    </aside>
   </main>
 
   <div class="saveBar">

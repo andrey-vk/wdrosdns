@@ -668,7 +668,7 @@ button.iconBtn.sm {
 
 .settingsShell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: 280px minmax(0, 1fr);
   gap: 16px;
   padding: 16px 24px 96px;
   align-items: start;
@@ -676,7 +676,7 @@ button.iconBtn.sm {
 
 .profilesPane {
   position: sticky;
-  top: 72px;
+  top: 56px;
   max-height: calc(100vh - 160px);
   overflow: auto;
 }
