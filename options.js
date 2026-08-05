@@ -10,6 +10,7 @@ import {
   normalizeDomainCollector,
   normalizeOverrideRecord,
   normalizeResolveServer,
+  overrideOrInherit,
   redactSecrets,
   routerErrorText
 } from "./common.js";
@@ -87,23 +88,29 @@ const asTimeout = v => Number(v) || 5000;
 // Each profile override field, the global field it falls back to, and how the
 // two are compared. A field that matches its global counterpart is stored as
 // null, i.e. "inherit", so later changes to the global settings still reach it.
+//
+// `read` deliberately takes the value from saved settings rather than from the
+// global form control: saving a profile does not save the global form, so an
+// unsaved global edit must not make an override look inherited.
 const OVERRIDE_FIELDS = [
-  { po: "poRecordType", global: "recordType", transform: asText },
-  { po: "poRecordAddress", global: "recordAddress", transform: asText },
-  { po: "poRecordForwardTo", global: "recordForwardTo", transform: asText },
-  { po: "poRecordAddressList", global: "recordAddressList", transform: asText },
-  { po: "poRecordComment", global: "recordComment", transform: asText },
-  { po: "poResolveServer", global: "resolveServer", transform: normalizeResolveServer },
-  { po: "poRequestTimeoutMs", global: "requestTimeoutMs", transform: asTimeout },
-  { po: "poRecordMatchSubdomain", global: "recordMatchSubdomain", transform: asBool },
-  { po: "poDefaultTrimToBaseDomain", global: "defaultTrimToBaseDomain", transform: asBool },
-  { po: "poDoResolveAfterAdd", global: "doResolveAfterAdd", transform: asBool }
+  { po: "poRecordType", global: "recordType", read: s => s.record.type, transform: asText },
+  { po: "poRecordAddress", global: "recordAddress", read: s => s.record.address, transform: asText },
+  { po: "poRecordForwardTo", global: "recordForwardTo", read: s => s.record.forwardTo, transform: asText },
+  { po: "poRecordAddressList", global: "recordAddressList", read: s => s.record.addressList, transform: asText },
+  { po: "poRecordComment", global: "recordComment", read: s => s.record.comment, transform: asText },
+  { po: "poResolveServer", global: "resolveServer", read: s => s.resolveServer, transform: normalizeResolveServer },
+  { po: "poRequestTimeoutMs", global: "requestTimeoutMs", read: s => s.requestTimeoutMs, transform: asTimeout },
+  { po: "poRecordMatchSubdomain", global: "recordMatchSubdomain", read: s => s.record.matchSubdomain, transform: asBool },
+  { po: "poDefaultTrimToBaseDomain", global: "defaultTrimToBaseDomain", read: s => s.defaultTrimToBaseDomain, transform: asBool },
+  { po: "poDoResolveAfterAdd", global: "doResolveAfterAdd", read: s => s.doResolveAfterAdd, transform: asBool }
 ];
 
+function savedGlobalValue(field) {
+  return field.read({ ...settings, record: { ...DEFAULT_RECORD, ...(settings.record || {}) } });
+}
+
 function overrideValue(field) {
-  const value = field.transform(fieldValue(f[field.po]));
-  const globalValue = field.transform(fieldValue(f[field.global]));
-  return String(value) === String(globalValue) ? null : value;
+  return overrideOrInherit(fieldValue(f[field.po]), savedGlobalValue(field), field.transform);
 }
 
 let settings = null;
@@ -160,7 +167,8 @@ function renderOverrideMarks() {
     reset.className = "link";
     reset.textContent = t("resetToGlobal");
     reset.addEventListener("click", () => {
-      setFieldValue(f[poId], fieldValue(f[field.global]));
+      // The saved value, so the field really ends up inheriting.
+      setFieldValue(f[poId], savedGlobalValue(field));
       toggleRecordFields(f.poRecordType, f.poAddressField, f.poForwardField);
       renderOverrideMarks();
       setDirty(true);

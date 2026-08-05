@@ -13,6 +13,7 @@ import {
   detectRouter,
   effectiveProfileSettings,
   normalizeProfile,
+  overrideOrInherit,
   routerErrorText,
   addResultStats,
   detectionFailureKey,
@@ -255,6 +256,38 @@ test("null override fields keep inheriting later global changes", () => {
   assert.equal(eff.defaultTrimToBaseDomain, false);
   assert.equal(eff.resolveServer, "10.0.0.1");
   assert.equal(eff.requestTimeoutMs, 7000);
+});
+
+test("overrideOrInherit stores null only when the value matches the global one", () => {
+  assert.equal(overrideOrInherit("1.1.1.1", "1.1.1.1"), null);
+  assert.equal(overrideOrInherit("8.8.8.8", "1.1.1.1"), "8.8.8.8");
+
+  // Compared after normalization, so cosmetic differences still inherit.
+  const asText = v => String(v ?? "").trim();
+  assert.equal(overrideOrInherit(" 1.1.1.1 ", "1.1.1.1", asText), null);
+
+  const asBool = v => !!v;
+  assert.equal(overrideOrInherit(false, true, asBool), false);
+  assert.equal(overrideOrInherit(true, true, asBool), null);
+});
+
+test("an unsaved global edit cannot turn an override into inherit", () => {
+  // The saved global forward-to is 1.1.1.1; the user typed 8.8.8.8 into the
+  // global form without saving, then set the same value on the profile.
+  const saved = "1.1.1.1";
+  const unsavedGlobalForm = "8.8.8.8";
+  const profileForm = "8.8.8.8";
+
+  assert.equal(
+    overrideOrInherit(profileForm, unsavedGlobalForm),
+    null,
+    "comparing against the form is what produced the bug"
+  );
+  assert.equal(
+    overrideOrInherit(profileForm, saved),
+    "8.8.8.8",
+    "comparing against saved settings keeps the user's value"
+  );
 });
 
 test("normalizeProfile keeps unspecified override record fields inheritable", () => {

@@ -279,6 +279,16 @@ export function normalizeOverrideRecord(record) {
   return out;
 }
 
+// Decides what a profile override field should store: null when it matches the
+// global value it would otherwise inherit, the value itself when it differs.
+// `globalValue` must come from saved settings, not from an unsaved form control,
+// or a field could be stored as "inherit" against a value that was never saved.
+export function overrideOrInherit(value, globalValue, transform = v => v) {
+  const own = transform(value);
+  const inheritedValue = transform(globalValue);
+  return String(own) === String(inheritedValue) ? null : own;
+}
+
 export function mergeRecordOverrides(globalRecord, overrideRecord) {
   const record = { ...DEFAULT_RECORD, ...(globalRecord || {}) };
 

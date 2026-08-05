@@ -72,6 +72,7 @@ let currentTabId = null;
 let rawCurrentHost = "";
 let trimBase = true;
 let domainEdited = false;
+let modeChosen = false;
 let showAll = false;
 let lastNetworkResult = null;
 let collectorRows = [];
@@ -205,8 +206,12 @@ async function detectRouter(interactive = true) {
 
 function applyProfileDefaults() {
   const eff = effectiveProfileSettings(settings, selectedProfile() || {});
-  // Never clobber a domain the user has already typed.
-  setTrimMode(!!eff.defaultTrimToBaseDomain, !domainEdited);
+
+  // Detection can finish after the user has already picked a mode or typed a
+  // domain — usually while the popup's initial detection is still in flight.
+  // Neither choice may be overwritten by the profile default.
+  if (!modeChosen) setTrimMode(!!eff.defaultTrimToBaseDomain, !domainEdited);
+
   renderRecordChips(eff);
 }
 
@@ -649,8 +654,9 @@ el.recordChips.addEventListener("click", () => chrome.runtime.openOptionsPage())
 
 el.detectBtn.addEventListener("click", () => withBusy(el.detectBtn, "", () => detectRouter(true)));
 
-el.segBase.addEventListener("click", () => setTrimMode(true));
-el.segHost.addEventListener("click", () => setTrimMode(false));
+// An explicit click is a decision, not a default: it survives later detection.
+el.segBase.addEventListener("click", () => { modeChosen = true; setTrimMode(true); });
+el.segHost.addEventListener("click", () => { modeChosen = true; setTrimMode(false); });
 
 el.addBtn.addEventListener("click", () => addDomains(domainsFromForm(), el.addBtn));
 
