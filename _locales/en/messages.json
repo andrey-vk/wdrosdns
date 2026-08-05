@@ -236,11 +236,28 @@
   "noteAdded": {
     "message": "added"
   },
+  "noteDuplicates": {
+    "message": "$1 more record(s) with this name",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "noteInvalidDomain": {
+    "message": "not a valid domain name"
+  },
   "noteRelated": {
     "message": "subdomain, resolve only"
   },
   "noteResolveOk": {
     "message": "resolve ok"
+  },
+  "noteUnchanged": {
+    "message": "already present"
+  },
+  "noteUpdated": {
+    "message": "updated"
   },
   "optionsTitle": {
     "message": "MikroTik DNS settings"
@@ -253,6 +270,9 @@
   },
   "password": {
     "message": "Password"
+  },
+  "passwordStorageHint": {
+    "message": "Credentials are stored unencrypted in this browser profile's local extension storage. Prefer a dedicated RouterOS user with permission to change DNS only."
   },
   "pattern": {
     "message": "Pattern"
@@ -392,6 +412,9 @@
   "statusIdentityUpdateFailed": {
     "message": "Cannot update profile identity."
   },
+  "statusListFailed": {
+    "message": "Could not read static DNS records from the router."
+  },
   "statusNeedProfileFields": {
     "message": "Name, URL, login and identity are required."
   },
@@ -416,6 +439,9 @@
   "statusNoTab": {
     "message": "Cannot detect current tab."
   },
+  "statusNoValidDomains": {
+    "message": "No valid domain names were entered."
+  },
   "statusNothingToCopy": {
     "message": "Nothing to copy."
   },
@@ -436,6 +462,14 @@
       },
       "2": {
         "content": "$2"
+      }
+    }
+  },
+  "summaryDuplicates": {
+    "message": "$1 duplicate record(s) on the router",
+    "placeholders": {
+      "1": {
+        "content": "$1"
       }
     }
   },

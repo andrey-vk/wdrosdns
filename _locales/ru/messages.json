@@ -236,11 +236,28 @@
   "noteAdded": {
     "message": "добавлен"
   },
+  "noteDuplicates": {
+    "message": "ещё записей с этим именем: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "noteInvalidDomain": {
+    "message": "недопустимое доменное имя"
+  },
   "noteRelated": {
     "message": "поддомен, только resolve"
   },
   "noteResolveOk": {
     "message": "resolve ok"
+  },
+  "noteUnchanged": {
+    "message": "уже есть"
+  },
+  "noteUpdated": {
+    "message": "обновлён"
   },
   "optionsTitle": {
     "message": "MikroTik DNS — настройки"
@@ -253,6 +270,9 @@
   },
   "password": {
     "message": "Password"
+  },
+  "passwordStorageHint": {
+    "message": "Учётные данные хранятся без шифрования в локальном хранилище расширения этого профиля браузера. Лучше завести отдельного пользователя RouterOS с правом менять только DNS."
   },
   "pattern": {
     "message": "Pattern"
@@ -392,6 +412,9 @@
   "statusIdentityUpdateFailed": {
     "message": "Не удалось изменить identity профиля."
   },
+  "statusListFailed": {
+    "message": "Не удалось получить список статических DNS-записей с роутера."
+  },
   "statusNeedProfileFields": {
     "message": "Нужны название, URL, login и identity."
   },
@@ -416,6 +439,9 @@
   "statusNoTab": {
     "message": "Не удалось определить текущую вкладку."
   },
+  "statusNoValidDomains": {
+    "message": "Не введено ни одного корректного домена."
+  },
   "statusNothingToCopy": {
     "message": "Нечего копировать."
   },
@@ -436,6 +462,14 @@
       },
       "2": {
         "content": "$2"
+      }
+    }
+  },
+  "summaryDuplicates": {
+    "message": "дубликатов на роутере: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
       }
     }
   },
