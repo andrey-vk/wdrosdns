@@ -7,7 +7,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-import { collectFiles } from "./collect-files.mjs";
+import { collectFiles, workflowPackagingGaps } from "./collect-files.mjs";
 
 function fail(message) {
   console.error(`✗ ${message}`);
@@ -104,8 +104,28 @@ async function main() {
   }
 
   // Everything reachable from the manifest must be present in the tree.
-  const { missing } = await collectFiles(root);
+  const { files, missing } = await collectFiles(root);
   for (const file of missing) fail(`referenced but missing from ${root}: ${file}`);
+
+  // ...and the release workflow must actually put all of it in the ZIP. This
+  // runs before the packaging step, so a stale list fails the release instead of
+  // publishing an extension that cannot load.
+  const releaseWorkflow = rel(".github/workflows/release.yml");
+  if (existsSync(releaseWorkflow)) {
+    const gaps = workflowPackagingGaps(await readFile(releaseWorkflow, "utf8"), files);
+
+    if (gaps.unknown) {
+      console.warn("! could not tell which files .github/workflows/release.yml packages");
+    }
+
+    for (const file of gaps.missing) {
+      fail(`.github/workflows/release.yml does not package: ${file}`);
+    }
+
+    if (gaps.missing.length) {
+      console.error("  Use `npm run build` in the workflow so the file list follows the manifest.");
+    }
+  }
 
   // Versions must agree all the way through: git tag → manifest → package.json.
   if (existsSync(rel("package.json"))) {

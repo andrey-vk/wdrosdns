@@ -247,6 +247,10 @@ new module is picked up automatically. CI builds and validates the ZIP on every 
 release workflow additionally requires the git tag, `manifest.json` and `package.json`
 versions to agree.
 
+`validate:manifest` also fails if `.github/workflows/release.yml` packages files by hand and
+that list has fallen behind the manifest — a release built from a stale list produces a ZIP
+that cannot load. Using `npm run build` in the workflow removes the list, and the check.
+
 ## Install
 
 1. Unzip.

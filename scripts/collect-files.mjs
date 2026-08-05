@@ -105,6 +105,38 @@ export async function collectFiles(root = ".") {
   return { files: Array.from(seen).sort(), missing: Array.from(new Set(missing)).sort() };
 }
 
+// Checks that the release workflow actually packages everything the manifest
+// reaches. A hand-maintained `cp` list goes stale the moment a module is added,
+// and the result is a ZIP that fails to load with no build-time signal at all.
+//
+// Returns { derived: true } when the workflow delegates to the build script, in
+// which case there is no list to go stale.
+export function workflowPackagingGaps(workflowText, files) {
+  const text = String(workflowText || "");
+
+  if (/npm run build|build-package\.mjs/.test(text)) return { derived: true, missing: [] };
+
+  // Fold shell line continuations so a wrapped `cp` reads as one command.
+  const joined = text.replace(/\\\r?\n/g, " ");
+  const copied = new Set();
+
+  for (const line of joined.split(/\r?\n/)) {
+    const match = line.match(/^\s*cp\s+(.*)$/);
+    if (!match) continue;
+
+    const args = match[1].split(/\s+/).filter(arg => arg && !arg.startsWith("-"));
+    args.pop(); // destination
+    for (const arg of args) copied.add(arg.replace(/\/+$/, ""));
+  }
+
+  if (!copied.size) return { derived: false, unknown: true, missing: [] };
+
+  const missing = files.filter(file =>
+    !copied.has(file) && !Array.from(copied).some(dir => file.startsWith(`${dir}/`)));
+
+  return { derived: false, missing };
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const root = process.argv[2] || ".";
   const { files, missing } = await collectFiles(root);

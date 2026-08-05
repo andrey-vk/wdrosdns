@@ -46,7 +46,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Release validation: git tag, `manifest.json` and `package.json` versions must agree, the
   package file list is derived from the manifest's own reference graph, and the produced ZIP
   is unpacked and validated instead of only the source tree. Locale files are checked for
-  key parity.
+  key parity. Validation also fails if the release workflow would leave out a file the
+  manifest reaches, which is how a stale packaging list ships an extension that cannot load.
 - `npm run update:psl` regenerates the bundled Public Suffix List.
 
 ### Changed
