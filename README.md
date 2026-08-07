@@ -4,8 +4,10 @@
 [![Latest release](https://img.shields.io/github/v/release/andrey-vk/wdrosdns)](https://github.com/andrey-vk/wdrosdns/releases/latest)
 [![Lint](https://img.shields.io/github/actions/workflow/status/andrey-vk/wdrosdns/lint.yml?branch=main&label=lint)](https://github.com/andrey-vk/wdrosdns/actions/workflows/lint.yml)
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-blue)](manifest.json)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/mkiocapbghnhoaahkgepodgkmfjnofcg?label=chrome%20web%20store)](https://chromewebstore.google.com/detail/mikrotik-dns-helper/mkiocapbghnhoaahkgepodgkmfjnofcg)
 
-🇷🇺 [Русская версия](README.ru.md) · [Changelog](CHANGELOG.md)
+🇷🇺 [Русская версия](README.ru.md) · [Changelog](CHANGELOG.md) ·
+[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/mikrotik-dns-helper/mkiocapbghnhoaahkgepodgkmfjnofcg)
 
 Edge/Chrome MV3 extension for adding current page domains and Network request domains to MikroTik RouterOS static DNS through the RouterOS REST API.
 
@@ -252,6 +254,14 @@ that list has fallen behind the manifest — a release built from a stale list p
 that cannot load. Using `npm run build` in the workflow removes the list, and the check.
 
 ## Install
+
+### From the Chrome Web Store
+
+[MikroTik DNS Helper](https://chromewebstore.google.com/detail/mikrotik-dns-helper/mkiocapbghnhoaahkgepodgkmfjnofcg)
+— the recommended way, with automatic updates. The listing works in Chrome and in Edge
+(open it in Edge and allow extensions from other stores).
+
+### From a release ZIP
 
 1. Unzip.
 2. Open `edge://extensions/`.

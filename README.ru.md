@@ -4,8 +4,10 @@
 [![Latest release](https://img.shields.io/github/v/release/andrey-vk/wdrosdns)](https://github.com/andrey-vk/wdrosdns/releases/latest)
 [![Lint](https://img.shields.io/github/actions/workflow/status/andrey-vk/wdrosdns/lint.yml?branch=main&label=lint)](https://github.com/andrey-vk/wdrosdns/actions/workflows/lint.yml)
 [![Manifest V3](https://img.shields.io/badge/manifest-v3-blue)](manifest.json)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/mkiocapbghnhoaahkgepodgkmfjnofcg?label=chrome%20web%20store)](https://chromewebstore.google.com/detail/mikrotik-dns-helper/mkiocapbghnhoaahkgepodgkmfjnofcg)
 
-🇬🇧 [English version](README.md) · [История изменений](CHANGELOG.md)
+🇬🇧 [English version](README.md) · [История изменений](CHANGELOG.md) ·
+[Установить из Chrome Web Store](https://chromewebstore.google.com/detail/mikrotik-dns-helper/mkiocapbghnhoaahkgepodgkmfjnofcg)
 
 Расширение Edge/Chrome (Manifest V3) для добавления доменов текущей страницы и доменов из
 сетевых запросов в статические DNS-записи MikroTik RouterOS через REST API RouterOS.
@@ -273,6 +275,14 @@ workflow релиза дополнительно требует совпаден
 `package.json`.
 
 ## Установка
+
+### Из Chrome Web Store
+
+[MikroTik DNS Helper](https://chromewebstore.google.com/detail/mikrotik-dns-helper/mkiocapbghnhoaahkgepodgkmfjnofcg)
+— рекомендуемый способ, с автоматическими обновлениями. Страница расширения работает в Chrome
+и в Edge (откройте её в Edge и разрешите установку расширений из сторонних магазинов).
+
+### Из ZIP-архива релиза
 
 1. Распакуйте архив.
 2. Откройте `edge://extensions/`.
