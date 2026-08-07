@@ -40,3 +40,17 @@ jobs:
         with:
           files: wdrosdns-${{ github.ref_name }}.zip
           generate_release_notes: true
+
+      - name: Upload to Chrome Web Store
+        run: |
+          npx chrome-webstore-upload-cli@4 upload \
+            --source "wdrosdns-${GITHUB_REF_NAME}.zip" \
+            --extension-id "$CHROME_EXTENSION_ID" \
+            --client-id "$CHROME_CLIENT_ID" \
+            --client-secret "$CHROME_CLIENT_SECRET" \
+            --refresh-token "$CHROME_REFRESH_TOKEN"
+        env:
+          CHROME_EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
