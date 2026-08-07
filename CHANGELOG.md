@@ -7,6 +7,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-07
+
 ### Fixed
 
 - **Adding a domain twice no longer creates duplicate static DNS entries.** RouterOS `PUT`
@@ -110,7 +112,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   record has `match-subdomain` enabled, every captured host equal to or a subdomain of the
   added domain is resolved, not just the added domain itself.
 
-[Unreleased]: https://github.com/andrey-vk/wdrosdns/compare/v0.6.3...HEAD
+[Unreleased]: https://github.com/andrey-vk/wdrosdns/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/andrey-vk/wdrosdns/compare/v0.6.3...v0.7.0
 [0.6.3]: https://github.com/andrey-vk/wdrosdns/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/andrey-vk/wdrosdns/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/andrey-vk/wdrosdns/releases/tag/v0.6.1
