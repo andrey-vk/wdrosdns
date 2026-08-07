@@ -66,9 +66,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - README titles no longer hard-code a version number; the "Latest release" badge already
   shows it.
 - CI: the release workflow now uploads the packaged zip to the Chrome Web Store as a draft
-  after publishing the GitHub Release (requires the `CHROME_EXTENSION_ID`, `CHROME_CLIENT_ID`,
-  `CHROME_CLIENT_SECRET`, and `CHROME_REFRESH_TOKEN` repo secrets). It does not auto-publish —
-  submitting the draft for review is still a manual step in the developer dashboard.
+  after publishing the GitHub Release (requires the `CHROME_EXTENSION_ID`, `CHROME_PUBLISHER_ID`,
+  `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, and `CHROME_REFRESH_TOKEN` repo secrets). It does
+  not auto-publish — submitting the draft for review is still a manual step in the developer
+  dashboard.
 
 ## [0.6.3] - 2026-08-05
 
