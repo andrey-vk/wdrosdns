@@ -20,4 +20,12 @@ jobs:
 
       - run: npm run lint
 
+      - run: npm test
+
       - run: npm run validate:manifest
+
+      - name: Package and validate
+        run: |
+          npm run build
+          cd dist && zip -qr ../wdrosdns-ci.zip wdrosdns && cd ..
+          node scripts/validate-package.mjs wdrosdns-ci.zip

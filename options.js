@@ -8,7 +8,10 @@ import {
   DEFAULT_DOMAIN_COLLECTOR,
   DEFAULT_RESOLVE_SERVER,
   normalizeDomainCollector,
+  normalizeOverrideRecord,
   normalizeResolveServer,
+  overrideOrInherit,
+  redactSecrets,
   routerErrorText
 } from "./common.js";
 import { applyI18n, t, fmt } from "./i18n.js";
@@ -78,19 +81,37 @@ const f = {
   status: $("status")
 };
 
-// Each profile override field and the global field it falls back to.
-const OVERRIDE_PAIRS = [
-  ["poRecordType", "recordType"],
-  ["poRecordAddress", "recordAddress"],
-  ["poRecordForwardTo", "recordForwardTo"],
-  ["poRecordAddressList", "recordAddressList"],
-  ["poRecordComment", "recordComment"],
-  ["poResolveServer", "resolveServer"],
-  ["poRequestTimeoutMs", "requestTimeoutMs"],
-  ["poRecordMatchSubdomain", "recordMatchSubdomain"],
-  ["poDefaultTrimToBaseDomain", "defaultTrimToBaseDomain"],
-  ["poDoResolveAfterAdd", "doResolveAfterAdd"]
+const asText = v => String(v === null || v === undefined ? "" : v).trim();
+const asBool = v => !!v;
+const asTimeout = v => Number(v) || 5000;
+
+// Each profile override field, the global field it falls back to, and how the
+// two are compared. A field that matches its global counterpart is stored as
+// null, i.e. "inherit", so later changes to the global settings still reach it.
+//
+// `read` deliberately takes the value from saved settings rather than from the
+// global form control: saving a profile does not save the global form, so an
+// unsaved global edit must not make an override look inherited.
+const OVERRIDE_FIELDS = [
+  { po: "poRecordType", global: "recordType", read: s => s.record.type, transform: asText },
+  { po: "poRecordAddress", global: "recordAddress", read: s => s.record.address, transform: asText },
+  { po: "poRecordForwardTo", global: "recordForwardTo", read: s => s.record.forwardTo, transform: asText },
+  { po: "poRecordAddressList", global: "recordAddressList", read: s => s.record.addressList, transform: asText },
+  { po: "poRecordComment", global: "recordComment", read: s => s.record.comment, transform: asText },
+  { po: "poResolveServer", global: "resolveServer", read: s => s.resolveServer, transform: normalizeResolveServer },
+  { po: "poRequestTimeoutMs", global: "requestTimeoutMs", read: s => s.requestTimeoutMs, transform: asTimeout },
+  { po: "poRecordMatchSubdomain", global: "recordMatchSubdomain", read: s => s.record.matchSubdomain, transform: asBool },
+  { po: "poDefaultTrimToBaseDomain", global: "defaultTrimToBaseDomain", read: s => s.defaultTrimToBaseDomain, transform: asBool },
+  { po: "poDoResolveAfterAdd", global: "doResolveAfterAdd", read: s => s.doResolveAfterAdd, transform: asBool }
 ];
+
+function savedGlobalValue(field) {
+  return field.read({ ...settings, record: { ...DEFAULT_RECORD, ...(settings.record || {}) } });
+}
+
+function overrideValue(field) {
+  return overrideOrInherit(fieldValue(f[field.po]), savedGlobalValue(field), field.transform);
+}
 
 let settings = null;
 let editingId = null;
@@ -98,7 +119,7 @@ let dirty = false;
 
 function setStatus(text, obj = null) {
   f.status.textContent = text;
-  f.status.title = obj ? JSON.stringify(obj, null, 2) : "";
+  f.status.title = obj ? JSON.stringify(redactSecrets(obj), null, 2) : "";
 }
 
 function setDirty(on) {
@@ -127,15 +148,15 @@ function toggleRecordFields(typeEl, addressField, forwardField) {
 function renderOverrideMarks() {
   const enabled = !!f.profileOverrideEnabled.checked;
 
-  for (const [poId, globalId] of OVERRIDE_PAIRS) {
+  for (const field of OVERRIDE_FIELDS) {
+    const poId = field.po;
     const mark = document.querySelector(`.overrideMark[data-for="${poId}"]`);
     if (!mark) continue;
 
     mark.innerHTML = "";
     if (!enabled) continue;
 
-    const differs = String(fieldValue(f[poId])) !== String(fieldValue(f[globalId]));
-    if (!differs) continue;
+    if (overrideValue(field) === null) continue;
 
     const badge = document.createElement("span");
     badge.className = "badge accent";
@@ -146,7 +167,8 @@ function renderOverrideMarks() {
     reset.className = "link";
     reset.textContent = t("resetToGlobal");
     reset.addEventListener("click", () => {
-      setFieldValue(f[poId], fieldValue(f[globalId]));
+      // The saved value, so the field really ends up inheriting.
+      setFieldValue(f[poId], savedGlobalValue(field));
       toggleRecordFields(f.poRecordType, f.poAddressField, f.poForwardField);
       renderOverrideMarks();
       setDirty(true);
@@ -168,23 +190,27 @@ function toggleProfileOverridesUi() {
   renderOverrideMarks();
 }
 
+// null means "inherit", so the form shows the global value for those fields.
+function inherited(overrideValue, globalValue) {
+  return overrideValue === null || overrideValue === undefined ? globalValue : overrideValue;
+}
+
 function fillProfileOverrides(overrides = DEFAULT_PROFILE_OVERRIDES) {
   const o = {
     ...DEFAULT_PROFILE_OVERRIDES,
     ...(overrides || {}),
-    record: {
-      ...DEFAULT_RECORD,
-      ...((overrides && overrides.record) || {})
-    }
+    record: normalizeOverrideRecord((overrides && overrides.record) || {})
   };
 
+  const globalRecord = { ...DEFAULT_RECORD, ...(settings.record || {}) };
+
   f.profileOverrideEnabled.checked = !!o.enabled;
-  f.poRecordType.value = o.record.type || "FWD";
-  f.poRecordAddress.value = o.record.address || "";
-  f.poRecordForwardTo.value = o.record.forwardTo || "";
-  f.poRecordAddressList.value = o.record.addressList || "";
-  f.poRecordComment.value = o.record.comment || "";
-  f.poRecordMatchSubdomain.checked = !!o.record.matchSubdomain;
+  f.poRecordType.value = inherited(o.record.type, globalRecord.type) || "FWD";
+  f.poRecordAddress.value = inherited(o.record.address, globalRecord.address) || "";
+  f.poRecordForwardTo.value = inherited(o.record.forwardTo, globalRecord.forwardTo) || "";
+  f.poRecordAddressList.value = inherited(o.record.addressList, globalRecord.addressList) || "";
+  f.poRecordComment.value = inherited(o.record.comment, globalRecord.comment) || "";
+  f.poRecordMatchSubdomain.checked = !!inherited(o.record.matchSubdomain, globalRecord.matchSubdomain);
 
   f.poDefaultTrimToBaseDomain.checked =
     o.defaultTrimToBaseDomain === null || o.defaultTrimToBaseDomain === undefined
@@ -211,19 +237,23 @@ function fillProfileOverrides(overrides = DEFAULT_PROFILE_OVERRIDES) {
 }
 
 function readProfileOverridesFromForm() {
+  const value = Object.fromEntries(
+    OVERRIDE_FIELDS.map(field => [field.po, overrideValue(field)])
+  );
+
   return {
     enabled: !!f.profileOverrideEnabled.checked,
-    defaultTrimToBaseDomain: !!f.poDefaultTrimToBaseDomain.checked,
-    doResolveAfterAdd: !!f.poDoResolveAfterAdd.checked,
-    resolveServer: normalizeResolveServer(f.poResolveServer.value || settings.resolveServer),
-    requestTimeoutMs: Number(f.poRequestTimeoutMs.value || settings.requestTimeoutMs || 5000),
+    defaultTrimToBaseDomain: value.poDefaultTrimToBaseDomain,
+    doResolveAfterAdd: value.poDoResolveAfterAdd,
+    resolveServer: value.poResolveServer,
+    requestTimeoutMs: value.poRequestTimeoutMs,
     record: {
-      type: f.poRecordType.value,
-      address: f.poRecordAddress.value.trim(),
-      forwardTo: f.poRecordForwardTo.value.trim(),
-      addressList: f.poRecordAddressList.value.trim(),
-      comment: f.poRecordComment.value.trim(),
-      matchSubdomain: f.poRecordMatchSubdomain.checked
+      type: value.poRecordType,
+      address: value.poRecordAddress,
+      forwardTo: value.poRecordForwardTo,
+      addressList: value.poRecordAddressList,
+      comment: value.poRecordComment,
+      matchSubdomain: value.poRecordMatchSubdomain
     }
   };
 }

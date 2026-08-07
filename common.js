@@ -1,3 +1,5 @@
+import { isIpAddress, registrableDomain } from "./public-suffix.js";
+
 export const DEFAULT_RECORD = {
   type: "FWD",
   address: "",
@@ -9,13 +11,19 @@ export const DEFAULT_RECORD = {
 
 export const DEFAULT_RESOLVE_SERVER = "127.0.0.1";
 
+// null in an override means "inherit the global value", so a later change to the
+// global settings still reaches the profile.
+export const INHERITED_RECORD = Object.fromEntries(
+  Object.keys(DEFAULT_RECORD).map(key => [key, null])
+);
+
 export const DEFAULT_PROFILE_OVERRIDES = {
   enabled: false,
   defaultTrimToBaseDomain: null,
   doResolveAfterAdd: null,
   resolveServer: null,
   requestTimeoutMs: null,
-  record: { ...DEFAULT_RECORD }
+  record: { ...INHERITED_RECORD }
 };
 
 export const DEFAULT_DOMAIN_COLLECTOR = {
@@ -71,42 +79,91 @@ export function hostnameFromUrl(url) {
   }
 }
 
+// Registrable domain according to the bundled Public Suffix List, so
+// "a.b.example.co.uk" becomes "example.co.uk" and never bare "co.uk".
 export function trimToBaseDomain(hostname) {
-  const host = normalizeHost(hostname);
-  if (!host) return "";
-
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return host;
-  if (host.includes(":")) return host;
-
-  const parts = host.split(".").filter(Boolean);
-  if (parts.length <= 2) return host;
-
-  const twoPartPublicSuffixes = new Set([
-    "co.uk", "org.uk", "ac.uk", "gov.uk",
-    "com.au", "net.au", "org.au",
-    "co.nz", "org.nz",
-    "com.br", "com.tr", "com.cn", "com.hk",
-    "co.jp", "ne.jp", "or.jp",
-    "com.ua", "com.pl"
-  ]);
-
-  const last2 = parts.slice(-2).join(".");
-  if (twoPartPublicSuffixes.has(last2) && parts.length >= 3) {
-    return parts.slice(-3).join(".");
-  }
-
-  return parts.slice(-2).join(".");
+  return registrableDomain(normalizeHost(hostname));
 }
 
-export function parseDomainLines(text) {
-  return String(text || "")
-    .split(/[\s,;]+/)
-    .map(x => normalizeHost(x))
-    .filter(Boolean);
+// Underscores are allowed: they are not legal in host names but do occur in real
+// DNS labels (and on internal networks), and RouterOS accepts them.
+const DNS_LABEL = /^[a-z0-9_](?:[a-z0-9_-]*[a-z0-9_])?$/;
+
+export function isValidDomainName(hostname) {
+  const host = String(hostname || "");
+  if (!host || host.length > 253) return false;
+  if (isIpAddress(host)) return true;
+
+  return host
+    .split(".")
+    .every(label => label.length >= 1 && label.length <= 63 && DNS_LABEL.test(label));
+}
+
+// Accepts what a user may realistically paste — a hostname, "*.example.com", or
+// a full URL — and returns a bare DNS name, or "" when the input cannot yield
+// one. Everything that reaches RouterOS goes through here first.
+export function domainFromInput(value) {
+  let raw = String(value === null || value === undefined ? "" : value).trim();
+  if (!raw) return "";
+
+  // A wildcard is only meaningful as a leading "*."; RouterOS expresses it via
+  // match-subdomain, so the marker itself is dropped.
+  if (raw.startsWith("*.")) raw = raw.slice(2);
+  if (raw.includes("*")) return "";
+
+  // Bare IPv6 needs brackets before URL parsing accepts it.
+  if (raw.includes(":") && /^[0-9a-f:]+$/i.test(raw)) raw = `[${raw}]`;
+
+  const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw);
+  if (hasScheme && !/^https?:\/\//i.test(raw)) return "";
+
+  let host;
+  try {
+    host = new URL(hasScheme ? raw : `http://${raw}`).hostname;
+  } catch {
+    return "";
+  }
+
+  host = normalizeHost(host.replace(/^\[|\]$/g, ""));
+  return isValidDomainName(host) ? host : "";
+}
+
+// Splits user-supplied input into names safe to send and the raw entries that
+// could not be understood, so the UI can report them instead of failing later.
+export function partitionDomainInput(values) {
+  const valid = [];
+  const invalid = [];
+
+  for (const value of values || []) {
+    const raw = String(value === null || value === undefined ? "" : value).trim();
+    if (!raw) continue;
+
+    const domain = domainFromInput(raw);
+    if (domain) {
+      valid.push(domain);
+    } else {
+      invalid.push(raw);
+    }
+  }
+
+  return { valid: uniqueDomains(valid), invalid: Array.from(new Set(invalid)) };
 }
 
 export function uniqueDomains(domains) {
   return Array.from(new Set(domains.map(normalizeHost).filter(Boolean)));
+}
+
+// Keeps a checkbox selection stable while the row list is rebuilt: a domain seen
+// for the first time starts selected, and an explicit deselection survives
+// re-renders caused by searching, filtering or reloading.
+export function reconcileSelection(domains, selection, known) {
+  for (const domain of domains || []) {
+    if (!domain || known.has(domain)) continue;
+    known.add(domain);
+    selection.add(domain);
+  }
+
+  return selection;
 }
 
 export function normalizeCollectorFilter(filter) {
@@ -131,10 +188,16 @@ export function normalizeDomainCollector(domainCollector) {
     : DEFAULT_DOMAIN_COLLECTOR.filters.map(normalizeCollectorFilter);
 
   return {
-    pendingNoDataMs: Number(dc.pendingNoDataMs || DEFAULT_DOMAIN_COLLECTOR.pendingNoDataMs),
-    maxEntriesPerTab: Number(dc.maxEntriesPerTab || DEFAULT_DOMAIN_COLLECTOR.maxEntriesPerTab),
+    pendingNoDataMs: clampNumber(dc.pendingNoDataMs, 0, 600000, DEFAULT_DOMAIN_COLLECTOR.pendingNoDataMs),
+    maxEntriesPerTab: clampNumber(dc.maxEntriesPerTab, 1, 100000, DEFAULT_DOMAIN_COLLECTOR.maxEntriesPerTab),
     filters
   };
+}
+
+function clampNumber(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, Math.round(n)));
 }
 
 export function activeCollectorFilters(domainCollector) {
@@ -203,6 +266,40 @@ export function filterNetworkEntries(entries, domainCollector, includeAll = fals
     .filter(entry => includeAll || entry.reasons.length > 0);
 }
 
+// Override records only carry the keys the extension knows about; a missing key
+// becomes null so it keeps inheriting from the global record.
+export function normalizeOverrideRecord(record) {
+  const src = record || {};
+  const out = {};
+
+  for (const key of Object.keys(DEFAULT_RECORD)) {
+    out[key] = src[key] === undefined ? null : src[key];
+  }
+
+  return out;
+}
+
+// Decides what a profile override field should store: null when it matches the
+// global value it would otherwise inherit, the value itself when it differs.
+// `globalValue` must come from saved settings, not from an unsaved form control,
+// or a field could be stored as "inherit" against a value that was never saved.
+export function overrideOrInherit(value, globalValue, transform = v => v) {
+  const own = transform(value);
+  const inheritedValue = transform(globalValue);
+  return String(own) === String(inheritedValue) ? null : own;
+}
+
+export function mergeRecordOverrides(globalRecord, overrideRecord) {
+  const record = { ...DEFAULT_RECORD, ...(globalRecord || {}) };
+
+  for (const [key, value] of Object.entries(overrideRecord || {})) {
+    if (value === null || value === undefined) continue;
+    record[key] = value;
+  }
+
+  return record;
+}
+
 export function normalizeProfile(profile) {
   const p = profile || {};
   const overrides = p.overrides || {};
@@ -214,10 +311,7 @@ export function normalizeProfile(profile) {
       ...DEFAULT_PROFILE_OVERRIDES,
       ...overrides,
       enabled: !!overrides.enabled,
-      record: {
-        ...DEFAULT_RECORD,
-        ...(overrides.record || {})
-      }
+      record: normalizeOverrideRecord(overrides.record)
     }
   };
 }
@@ -257,6 +351,27 @@ export async function saveSettings(settings) {
   await chrome.storage.local.set(normalized);
 }
 
+const SECRET_KEYS = new Set(["password", "authorization", "Authorization"]);
+
+// Raw router responses are shown verbatim in the UI and they carry whole profile
+// objects, so anything secret is masked before it reaches the DOM.
+export function redactSecrets(value, seen = new WeakSet()) {
+  if (!value || typeof value !== "object") return value;
+  if (seen.has(value)) return "[circular]";
+  seen.add(value);
+
+  if (Array.isArray(value)) return value.map(item => redactSecrets(item, seen));
+
+  const out = {};
+  for (const [key, item] of Object.entries(value)) {
+    out[key] = SECRET_KEYS.has(key)
+      ? (item ? "***" : "")
+      : redactSecrets(item, seen);
+  }
+
+  return out;
+}
+
 export function authHeader(login, password) {
   return "Basic " + btoa(`${login || ""}:${password || ""}`);
 }
@@ -284,11 +399,7 @@ export function effectiveProfileSettings(globalSettings, profile) {
   }
 
   return {
-    record: {
-      ...DEFAULT_RECORD,
-      ...(globalSettings.record || {}),
-      ...(o.record || {})
-    },
+    record: mergeRecordOverrides(globalSettings.record, o.record),
     defaultTrimToBaseDomain:
       o.defaultTrimToBaseDomain === null || o.defaultTrimToBaseDomain === undefined
         ? !!globalSettings.defaultTrimToBaseDomain
@@ -481,11 +592,13 @@ export function buildStaticDnsPayload(domain, recordSettings) {
   const record = {
     name: domain,
     type: recordSettings.type || "FWD",
-    disabled: "no"
+    disabled: "no",
+    // Always explicit: leaving it out would make an existing "yes" record look
+    // equivalent to a request that asked for "no".
+    "match-subdomain": recordSettings.matchSubdomain ? "yes" : "no"
   };
 
   if (recordSettings.comment) record.comment = recordSettings.comment;
-  if (recordSettings.matchSubdomain) record["match-subdomain"] = "yes";
 
   if (record.type === "A") {
     if (recordSettings.address) record.address = recordSettings.address;
@@ -502,13 +615,97 @@ export function buildStaticDnsPayload(domain, recordSettings) {
   return record;
 }
 
-export async function addStaticDns(profile, domain, recordSettings, timeoutMs) {
+// RouterOS reports booleans as "true"/"false" but accepts "yes"/"no", so the two
+// spellings have to compare equal.
+function boolish(value) {
+  const v = String(value === null || value === undefined ? "" : value).trim().toLowerCase();
+  if (v === "yes" || v === "true") return true;
+  if (v === "no" || v === "false") return false;
+  return null;
+}
+
+export function staticDnsFieldMatches(desired, actual) {
+  const desiredBool = boolish(desired);
+  const actualBool = boolish(actual);
+
+  if (desiredBool !== null && actualBool !== null) return desiredBool === actualBool;
+
+  return String(desired === null || desired === undefined ? "" : desired)
+    === String(actual === null || actual === undefined ? "" : actual);
+}
+
+// True when the router already holds every field this payload would write.
+// Fields the payload does not manage (an operator's own comment, for instance)
+// are deliberately ignored.
+export function staticDnsRecordMatches(payload, existing) {
+  if (!existing || typeof existing !== "object") return false;
+
+  return Object.entries(payload).every(([key, value]) => {
+    if (key === "name") return normalizeHost(existing.name) === normalizeHost(value);
+    return staticDnsFieldMatches(value, existing[key]);
+  });
+}
+
+export function staticDnsRecordId(record) {
+  return record && (record[".id"] || record.id) ? String(record[".id"] || record.id) : "";
+}
+
+export async function fetchStaticDns(profile, timeoutMs) {
+  const r = await routerFetch(profile, "/rest/ip/dns/static", { method: "GET", timeoutMs });
+  if (!r.ok) return r;
+
+  return { ...r, records: Array.isArray(r.data) ? r.data : [] };
+}
+
+// Dynamic entries (DHCP leases, DoH, VPN) show up in the same menu but cannot be
+// edited, so they are neither reused nor patched.
+export function staticDnsRecordsForDomain(records, domain) {
+  const name = normalizeHost(domain);
+
+  return (records || []).filter(record =>
+    record
+    && normalizeHost(record.name) === name
+    && String(record.dynamic || "false").toLowerCase() !== "true");
+}
+
+// Idempotent write: reuse an equivalent record, PATCH a stale one, and only PUT
+// when the domain is genuinely absent. RouterOS PUT always creates, so calling
+// it unconditionally is what produced duplicate static entries.
+export async function ensureStaticDns(profile, domain, recordSettings, timeoutMs, existingRecords) {
   const payload = buildStaticDnsPayload(domain, recordSettings);
-  return await routerFetch(profile, "/rest/ip/dns/static", {
+  const existing = staticDnsRecordsForDomain(existingRecords, domain);
+
+  const equivalent = existing.find(record => staticDnsRecordMatches(payload, record));
+  if (equivalent) {
+    return {
+      ok: true,
+      action: "unchanged",
+      record: equivalent,
+      duplicates: Math.max(0, existing.length - 1)
+    };
+  }
+
+  const sameType = existing.find(record =>
+    staticDnsFieldMatches(payload.type, record.type || "A"));
+  const target = sameType || existing[0];
+  const targetId = staticDnsRecordId(target);
+
+  if (target && targetId) {
+    const r = await routerFetch(profile, `/rest/ip/dns/static/${encodeURIComponent(targetId)}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+      timeoutMs
+    });
+    return { ...r, action: r.ok ? "updated" : "", duplicates: Math.max(0, existing.length - 1) };
+  }
+
+  const r = await routerFetch(profile, "/rest/ip/dns/static", {
     method: "PUT",
     body: JSON.stringify(payload),
     timeoutMs
   });
+
+  return { ...r, action: r.ok ? "created" : "", duplicates: 0 };
 }
 
 export function normalizeResolveServer(server) {
@@ -571,11 +768,30 @@ export async function addDomainsUsingDetection(domains, options = {}) {
 
   const profile = normalizeProfile(detection.profile);
   const eff = effectiveProfileSettings(settings, profile);
-  const unique = uniqueDomains(domains);
+  const { valid: unique, invalid: invalidDomains } = partitionDomainInput(domains);
+
+  if (!unique.length) {
+    return { ok: false, detection, profile, invalidDomains, reason: "no_valid_domains" };
+  }
+
+  // One listing for the whole batch: every add then knows whether it has to
+  // create, update, or do nothing at all.
+  const existing = await fetchStaticDns(profile, eff.requestTimeoutMs);
+  if (!existing.ok) {
+    return { ok: false, detection, profile, invalidDomains, reason: "list_failed", list: existing };
+  }
+
+  const records = existing.records.slice();
 
   const results = [];
   for (const domain of unique) {
-    const add = await addStaticDns(profile, domain, eff.record, eff.requestTimeoutMs);
+    const add = await ensureStaticDns(profile, domain, eff.record, eff.requestTimeoutMs, records);
+
+    // Keep the local view current so a repeat within the same batch is a no-op.
+    if (add.ok && add.action === "created" && add.data && typeof add.data === "object") {
+      records.push(add.data);
+    }
+
     results.push({ domain, add });
   }
 
@@ -603,6 +819,7 @@ export async function addDomainsUsingDetection(domains, options = {}) {
     profile,
     identity: detection.identity,
     effectiveSettings: eff,
+    invalidDomains,
     results,
     resolveTargets,
     resolveResults,
@@ -630,18 +847,34 @@ export function routerErrorText(r) {
   return r.kind || "error";
 }
 
+export function invalidDomainRows(result) {
+  return ((result && result.invalidDomains) || []).map(domain => ({
+    domain,
+    added: false,
+    action: "",
+    duplicates: 0,
+    invalid: true,
+    addError: "",
+    resolveState: "none",
+    resolveError: "",
+    resolveServer: ""
+  }));
+}
+
 // Flattens an addDomainsUsingDetection() result into one row per domain so the
 // UI never has to dig through nested REST responses.
 export function addResultRows(result) {
-  if (!result || !result.ok) return [];
+  if (!result || !result.ok) return invalidDomainRows(result);
 
-  const rows = [];
+  const rows = invalidDomainRows(result);
   const byDomain = new Map();
 
   for (const item of result.results || []) {
     const row = {
       domain: item.domain,
       added: !!(item.add && item.add.ok),
+      action: (item.add && item.add.action) || "",
+      duplicates: Number((item.add && item.add.duplicates) || 0),
       addError: item.add && item.add.ok ? "" : routerErrorText(item.add),
       resolveState: "none",
       resolveError: "",
@@ -659,6 +892,8 @@ export function addResultRows(result) {
       row = {
         domain: item.domain,
         added: null,
+        action: "",
+        duplicates: 0,
         addError: "",
         resolveState: "none",
         resolveError: "",
@@ -680,15 +915,19 @@ export function addResultStats(result) {
   const rows = addResultRows(result);
   const added = rows.filter(r => r.added === true).length;
   const addTotal = rows.filter(r => r.added !== null).length;
+  const duplicates = rows.reduce((sum, r) => sum + Number(r.duplicates || 0), 0);
   const resolved = rows.filter(r => r.resolveState === "ok").length;
   const resolveTotal = rows.filter(r => r.resolveState !== "none").length;
   const server = rows.find(r => r.resolveServer)?.resolveServer || "";
 
-  return { rows, added, addTotal, resolved, resolveTotal, server };
+  return { rows, added, addTotal, resolved, resolveTotal, server, duplicates };
 }
 
 // i18n key describing why an add attempt never reached the router.
 export function detectionFailureKey(result) {
+  if (result && result.reason === "no_valid_domains") return "statusNoValidDomains";
+  if (result && result.reason === "list_failed") return "statusListFailed";
+
   const d = result && result.detection;
   if (!d) return "statusAddFailed";
   if (d.status === "no_profiles") return "statusNoProfiles";

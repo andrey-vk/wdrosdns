@@ -1,7 +1,8 @@
 import {
   hostnameFromUrl,
   trimToBaseDomain,
-  uniqueDomains
+  partitionDomainInput,
+  DEFAULT_DOMAIN_COLLECTOR
 } from "./common.js";
 import { createResultView } from "./result-view.js";
 import { applyI18n, t, fmt } from "./i18n.js";
@@ -35,9 +36,19 @@ const resultView = createResultView({
   rawJson: el.rawJson
 });
 
-let requests = [];
+// Hosts and their request counts, not full URLs: a long DevTools session would
+// otherwise grow without bound, and query strings often carry tokens the panel
+// has no use for. Insertion order lets the oldest host drop out at the cap.
+let hostCounts = new Map();
+let requestCount = 0;
+let maxHosts = DEFAULT_DOMAIN_COLLECTOR.maxEntriesPerTab;
+
 let rows = [];
 let trimBase = true;
+
+// Unlike the popup collector — which only lists requests matching the failure
+// filters — this panel lists every domain the page touched, so nothing is
+// pre-selected here.
 const selection = new Set();
 
 function domainOf(host) {
@@ -45,20 +56,24 @@ function domainOf(host) {
 }
 
 function addRequest(request) {
-  const url = request && request.url;
-  const host = hostnameFromUrl(url);
+  const host = hostnameFromUrl(request && request.url);
   if (!host) return false;
 
-  if (requests.some(r => r.url === url)) return false;
-  requests.push({ url, host });
+  requestCount += 1;
+  hostCounts.set(host, (hostCounts.get(host) || 0) + 1);
+
+  while (hostCounts.size > maxHosts) {
+    hostCounts.delete(hostCounts.keys().next().value);
+  }
+
   return true;
 }
 
 function buildRows() {
   const map = new Map();
 
-  for (const request of requests) {
-    const domain = domainOf(request.host);
+  for (const [host, count] of hostCounts) {
+    const domain = domainOf(host);
     if (!domain) continue;
 
     if (!map.has(domain)) {
@@ -66,8 +81,8 @@ function buildRows() {
     }
 
     const row = map.get(domain);
-    row.count += 1;
-    row.hosts.add(request.host);
+    row.count += count;
+    row.hosts.add(host);
   }
 
   return Array.from(map.values()).sort((a, b) => a.domain.localeCompare(b.domain));
@@ -83,13 +98,13 @@ function render() {
   rows = buildRows();
   const shown = visibleRows();
 
-  el.info.textContent = fmt("networkInfo", [requests.length, rows.length]);
+  el.info.textContent = fmt("networkInfo", [requestCount, rows.length]);
   el.rows.innerHTML = "";
 
   if (!shown.length) {
     const empty = document.createElement("div");
     empty.className = "emptyText";
-    empty.textContent = requests.length ? t("noDomainsByFilters") : t("collectorIdle");
+    empty.textContent = requestCount ? t("noDomainsByFilters") : t("collectorIdle");
     el.rows.appendChild(empty);
     updateSelectionInfo(shown);
     return;
@@ -150,7 +165,8 @@ function setTrimMode(enabled) {
 
 function reloadHar() {
   chrome.devtools.network.getHAR(har => {
-    requests = [];
+    hostCounts = new Map();
+    requestCount = 0;
     for (const entry of har.entries || []) {
       addRequest(entry.request);
     }
@@ -158,10 +174,23 @@ function reloadHar() {
   });
 }
 
+async function loadCollectorLimit() {
+  try {
+    const r = await chrome.runtime.sendMessage({ type: "GET_COLLECTOR_SETTINGS" });
+    if (r && r.ok && r.domainCollector) maxHosts = r.domainCollector.maxEntriesPerTab;
+  } catch {
+    // Keep the default limit if the service worker is not reachable yet.
+  }
+}
+
 async function addDomains(domains) {
-  const unique = uniqueDomains(domains);
-  if (!unique.length) {
-    resultView.showError(t("statusNoDomains"), null);
+  const { valid, invalid } = partitionDomainInput(domains);
+
+  if (!valid.length) {
+    resultView.showError(
+      t(invalid.length ? "statusNoValidDomains" : "statusNoDomains"),
+      invalid.length ? { invalidDomains: invalid } : null
+    );
     return;
   }
 
@@ -170,9 +199,9 @@ async function addDomains(domains) {
   try {
     const result = await chrome.runtime.sendMessage({
       type: "ADD_DOMAINS",
-      domains: unique,
+      domains,
       tabId: chrome.devtools.inspectedWindow.tabId,
-      resolveCandidates: requests.map(r => r.host).filter(Boolean)
+      resolveCandidates: Array.from(hostCounts.keys())
     });
 
     resultView.render(result);
@@ -210,4 +239,4 @@ chrome.devtools.network.onRequestFinished.addListener(req => {
 });
 
 setTrimMode(true);
-reloadHar();
+loadCollectorLimit().then(reloadHar);

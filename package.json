@@ -1,12 +1,15 @@
 {
   "name": "wdrosdns",
-  "version": "0.6.3",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "description": "Chrome/Edge MV3 extension for managing MikroTik RouterOS static DNS entries",
   "scripts": {
     "lint": "eslint .",
-    "validate:manifest": "node scripts/validate-manifest.mjs"
+    "test": "node --test \"tests/*.test.js\"",
+    "validate:manifest": "node scripts/validate-manifest.mjs",
+    "build": "node scripts/build-package.mjs",
+    "update:psl": "node scripts/update-public-suffix-list.mjs"
   },
   "devDependencies": {
     "eslint": "^9.9.0"

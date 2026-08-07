@@ -1,12 +1,21 @@
-import { addResultStats, detectionFailureKey } from "./common.js";
+import { addResultStats, detectionFailureKey, invalidDomainRows, redactSecrets } from "./common.js";
 import { t, fmt } from "./i18n.js";
+
+const ACTION_KEYS = {
+  created: "noteAdded",
+  updated: "noteUpdated",
+  unchanged: "noteUnchanged"
+};
 
 function noteFor(row) {
   const parts = [];
 
-  if (row.added === true) parts.push(t("noteAdded"));
-  if (row.added === false) parts.push(row.addError || t("noteAddFailed"));
-  if (row.added === null) parts.push(t("noteRelated"));
+  if (row.invalid) parts.push(t("noteInvalidDomain"));
+  else if (row.added === true) parts.push(t(ACTION_KEYS[row.action] || "noteAdded"));
+  else if (row.added === false) parts.push(row.addError || t("noteAddFailed"));
+  else if (row.added === null) parts.push(t("noteRelated"));
+
+  if (row.duplicates) parts.push(fmt("noteDuplicates", [row.duplicates]));
 
   if (row.resolveState === "ok") parts.push(t("noteResolveOk"));
   if (row.resolveState === "fail") parts.push(`resolve: ${row.resolveError}`);
@@ -19,8 +28,24 @@ function noteFor(row) {
 export function createResultView(el) {
   function setRaw(raw) {
     el.rawBox.classList.toggle("hidden", !raw);
-    el.rawJson.textContent = raw ? JSON.stringify(raw, null, 2) : "";
+    el.rawJson.textContent = raw ? JSON.stringify(redactSecrets(raw), null, 2) : "";
     el.rawBox.open = false;
+  }
+
+  function appendRow(text, cls, mark) {
+    const row = document.createElement("div");
+    row.className = `resultRow ${cls}`;
+
+    const markEl = document.createElement("span");
+    markEl.className = "mark";
+    markEl.textContent = mark;
+
+    const label = document.createElement("span");
+    label.className = "grow ellipsis";
+    label.textContent = text;
+
+    row.append(markEl, label);
+    el.list.appendChild(row);
   }
 
   function showError(text, raw = null) {
@@ -28,19 +53,13 @@ export function createResultView(el) {
     el.summary.textContent = "";
     el.list.innerHTML = "";
 
-    const row = document.createElement("div");
-    row.className = "resultRow err";
+    appendRow(text, "err", "✕");
 
-    const mark = document.createElement("span");
-    mark.className = "mark";
-    mark.textContent = "✕";
+    // Names the user typed that could never be valid DNS entries.
+    for (const row of invalidDomainRows(raw)) {
+      appendRow(`${row.domain} — ${t("noteInvalidDomain")}`, "err", "✕");
+    }
 
-    const label = document.createElement("span");
-    label.className = "grow";
-    label.textContent = text;
-
-    row.append(mark, label);
-    el.list.appendChild(row);
     setRaw(raw);
   }
 
@@ -57,13 +76,16 @@ export function createResultView(el) {
     if (stats.resolveTotal) {
       parts.push(fmt("summaryResolved", [stats.resolved, stats.resolveTotal, stats.server]));
     }
+    if (stats.duplicates) {
+      parts.push(fmt("summaryDuplicates", [stats.duplicates]));
+    }
     el.summary.textContent = parts.join(" · ");
 
     el.list.innerHTML = "";
 
     for (const row of stats.rows) {
       const line = document.createElement("div");
-      const failed = row.added === false || row.resolveState === "fail";
+      const failed = row.added === false || row.invalid || row.resolveState === "fail";
       line.className = `resultRow ${failed ? "err" : row.added === null ? "muted" : "ok"}`;
 
       const mark = document.createElement("span");

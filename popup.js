@@ -2,11 +2,11 @@ import {
   loadSettings,
   hostnameFromUrl,
   trimToBaseDomain,
-  parseDomainLines,
-  uniqueDomains,
+  partitionDomainInput,
   effectiveProfileSettings,
   filterNetworkEntries,
-  normalizeDomainCollector
+  normalizeDomainCollector,
+  reconcileSelection
 } from "./common.js";
 import { createResultView } from "./result-view.js";
 import { applyI18n, t, fmt } from "./i18n.js";
@@ -71,10 +71,18 @@ let lastDetection = null;
 let currentTabId = null;
 let rawCurrentHost = "";
 let trimBase = true;
+let domainEdited = false;
+let modeChosen = false;
 let showAll = false;
 let lastNetworkResult = null;
 let collectorRows = [];
 let popupCollector = null;
+
+// Selection lives outside the rendered rows: rows are rebuilt on every search,
+// filter change and mode switch, and a rebuilt row must not silently re-check
+// itself. `knownDomains` is what makes "seen before" different from "new".
+const selection = new Set();
+const knownDomains = new Set();
 
 /* --- generic ui helpers --- */
 
@@ -171,8 +179,10 @@ async function detectRouter(interactive = true) {
   });
 
   if (detection.status === "matched" || detection.status === "matched_other_identity_profile") {
-    const p = detection.profile;
-    setRouterState("ok", p.name || p.url, `${p.url} · ${detection.identity}`);
+    // Detection can land on a different profile than the one selected (same
+    // address and credentials, different identity). The record chips must then
+    // describe the profile that will actually be used.
+    syncSelectedProfile(detection.profile, detection.identity);
     return detection;
   }
 
@@ -196,8 +206,28 @@ async function detectRouter(interactive = true) {
 
 function applyProfileDefaults() {
   const eff = effectiveProfileSettings(settings, selectedProfile() || {});
-  setTrimMode(!!eff.defaultTrimToBaseDomain);
+
+  // Detection can finish after the user has already picked a mode or typed a
+  // domain — usually while the popup's initial detection is still in flight.
+  // Neither choice may be overwritten by the profile default.
+  if (!modeChosen) setTrimMode(!!eff.defaultTrimToBaseDomain, !domainEdited);
+
   renderRecordChips(eff);
+}
+
+// Points the popup at the profile the router operation will really use, so the
+// header, the profile list and the record chips all describe the same thing.
+function syncSelectedProfile(profile, identity) {
+  if (!profile) return;
+
+  setRouterState("ok", profile.name || profile.url, `${profile.url} · ${identity || ""}`.trim());
+
+  if (profile.id && profile.id !== selectedProfileId) {
+    selectedProfileId = profile.id;
+    renderProfilePopover();
+  }
+
+  applyProfileDefaults();
 }
 
 function renderRecordChips(eff) {
@@ -228,26 +258,39 @@ function renderRecordChips(eff) {
   }
 }
 
-function setTrimMode(enabled) {
+function setTrimMode(enabled, rewriteDomain = true) {
+  const changed = trimBase !== enabled;
   trimBase = enabled;
   el.segBase.classList.toggle("active", enabled);
   el.segHost.classList.toggle("active", !enabled);
 
-  if (enabled) {
-    const src = el.currentDomain.value.trim() || rawCurrentHost;
-    el.currentDomain.value = trimToBaseDomain(src);
-  } else if (rawCurrentHost) {
-    el.currentDomain.value = rawCurrentHost;
+  if (rewriteDomain) {
+    if (enabled) {
+      const src = el.currentDomain.value.trim() || rawCurrentHost;
+      el.currentDomain.value = trimToBaseDomain(src);
+    } else if (rawCurrentHost) {
+      el.currentDomain.value = rawCurrentHost;
+    }
   }
 
+  // Base-domain and host mode produce different names, so the old selection no
+  // longer refers to anything on screen.
+  if (changed) resetSelection();
   if (lastNetworkResult) renderCollector();
 }
 
+function resetSelection() {
+  selection.clear();
+  knownDomains.clear();
+}
+
+// Raw text on purpose: the background re-validates and reports back what it
+// could not understand, so nothing is silently dropped here.
 function domainsFromForm() {
-  return uniqueDomains([
-    el.currentDomain.value.trim(),
-    ...parseDomainLines(el.extraDomains.value)
-  ]);
+  return [
+    el.currentDomain.value,
+    ...String(el.extraDomains.value || "").split(/[\s,;]+/)
+  ].map(v => v.trim()).filter(Boolean);
 }
 
 /* --- network collector --- */
@@ -273,7 +316,6 @@ function buildCollectorRows(entries) {
       map.set(domain, {
         domain,
         count: 0,
-        selected: true,
         statuses: new Set(),
         errors: new Set(),
         reasons: new Set()
@@ -370,6 +412,7 @@ function renderCollector() {
   );
 
   collectorRows = buildCollectorRows(entries);
+  reconcileSelection(collectorRows.map(r => r.domain), selection, knownDomains);
   const rows = visibleRows();
 
   el.collectorInfo.textContent = fmt("networkInfo", [
@@ -392,9 +435,13 @@ function renderCollector() {
 
     const cb = document.createElement("input");
     cb.type = "checkbox";
-    cb.checked = row.selected;
+    cb.checked = selection.has(row.domain);
     cb.addEventListener("change", () => {
-      row.selected = cb.checked;
+      if (cb.checked) {
+        selection.add(row.domain);
+      } else {
+        selection.delete(row.domain);
+      }
       updateSelectionInfo();
     });
 
@@ -445,7 +492,7 @@ function shortError(error) {
 
 function updateSelectionInfo() {
   const rows = visibleRows();
-  const selected = rows.filter(r => r.selected).length;
+  const selected = rows.filter(r => selection.has(r.domain)).length;
 
   el.selectionInfo.textContent = rows.length
     ? fmt("selectionInfo", [selected, rows.length])
@@ -486,17 +533,20 @@ async function collectNetwork() {
 
 async function addDomains(domains, button) {
   hideMismatch();
-  const unique = uniqueDomains(domains);
+  const { valid, invalid } = partitionDomainInput(domains);
 
-  if (!unique.length) {
-    resultView.showError(t("statusNoDomains"), null);
+  if (!valid.length) {
+    resultView.showError(
+      t(invalid.length ? "statusNoValidDomains" : "statusNoDomains"),
+      invalid.length ? { invalidDomains: invalid } : null
+    );
     return;
   }
 
   await withBusy(button, t("statusAdding"), async () => {
     const result = await chrome.runtime.sendMessage({
       type: "ADD_DOMAINS",
-      domains: unique,
+      domains,
       preferredProfileId: selectedProfileId,
       tabId: currentTabId,
       resolveCandidates: rawCurrentHost ? [rawCurrentHost] : []
@@ -507,7 +557,7 @@ async function addDomains(domains, button) {
     }
 
     if (result.ok && result.profile) {
-      setRouterState("ok", result.profile.name || result.profile.url, `${result.profile.url} · ${result.identity || ""}`);
+      syncSelectedProfile(result.profile, result.identity);
     }
 
     resultView.render(result);
@@ -604,10 +654,13 @@ el.recordChips.addEventListener("click", () => chrome.runtime.openOptionsPage())
 
 el.detectBtn.addEventListener("click", () => withBusy(el.detectBtn, "", () => detectRouter(true)));
 
-el.segBase.addEventListener("click", () => setTrimMode(true));
-el.segHost.addEventListener("click", () => setTrimMode(false));
+// An explicit click is a decision, not a default: it survives later detection.
+el.segBase.addEventListener("click", () => { modeChosen = true; setTrimMode(true); });
+el.segHost.addEventListener("click", () => { modeChosen = true; setTrimMode(false); });
 
 el.addBtn.addEventListener("click", () => addDomains(domainsFromForm(), el.addBtn));
+
+el.currentDomain.addEventListener("input", () => { domainEdited = true; });
 
 el.currentDomain.addEventListener("keydown", ev => {
   if (ev.key === "Enter") addDomains(domainsFromForm(), el.addBtn);
@@ -627,18 +680,27 @@ el.clearNetworkBtn.addEventListener("click", async () => {
   await chrome.runtime.sendMessage({ type: "CLEAR_TAB_NETWORK", tabId: currentTabId });
   lastNetworkResult = null;
   collectorRows = [];
+  resetSelection();
   renderCollector();
 });
 
 el.toggleAll.addEventListener("click", () => {
   const rows = visibleRows();
-  const selectAll = rows.some(r => !r.selected);
-  for (const row of rows) row.selected = selectAll;
+  const selectAll = rows.some(r => !selection.has(r.domain));
+
+  for (const row of rows) {
+    if (selectAll) {
+      selection.add(row.domain);
+    } else {
+      selection.delete(row.domain);
+    }
+  }
+
   renderCollector();
 });
 
 el.addSelectedNetwork.addEventListener("click", () =>
-  addDomains(visibleRows().filter(r => r.selected).map(r => r.domain), el.addSelectedNetwork)
+  addDomains(visibleRows().filter(r => selection.has(r.domain)).map(r => r.domain), el.addSelectedNetwork)
 );
 
 el.createFromDetected.addEventListener("click", async () => {

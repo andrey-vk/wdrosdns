@@ -1,4 +1,4 @@
-# MikroTik DNS Helper v0.6.3
+# MikroTik DNS Helper v0.7.0
 
 [![License: MIT](https://img.shields.io/github/license/andrey-vk/wdrosdns)](LICENSE)
 [![Latest release](https://img.shields.io/github/v/release/andrey-vk/wdrosdns)](https://github.com/andrey-vk/wdrosdns/releases/latest)
@@ -114,6 +114,20 @@ _locales/ru/messages.json
 The browser chooses the language automatically. New translations can be added by creating another `_locales/<locale>/messages.json`.
 
 
+## Base domain detection
+
+The `Domain` / `Host` toggle decides whether a captured host is reduced to its registrable
+domain before being added. The reduction uses a bundled copy of the
+[Public Suffix List](https://publicsuffix.org/), so `a.b.example.co.uk` becomes
+`example.co.uk` rather than `co.uk`, and private suffixes such as `github.io` are handled
+too. IP literals, `localhost` and hosts that are themselves a public suffix are left alone.
+
+The list is static data in `public-suffix-list.js` — nothing is fetched at runtime. Refresh
+it with `npm run update:psl`.
+
+`Host` mode adds the exact host name and is the safer choice when the record has
+`match-subdomain` enabled.
+
 ## Resolve behavior with match-subdomain
 
 Since v0.6.1, `:resolve` uses captured exact hosts from the current tab.
@@ -192,7 +206,10 @@ Manifest permissions and why each is requested:
   collector. The extension only reads request metadata; it never reads or modifies request
   or response bodies.
 - `storage` — save RouterOS profiles (URL, login, password, per-profile DNS defaults) and
-  extension settings locally via `chrome.storage`.
+  extension settings on this device via `chrome.storage.local`, and keep captured request
+  metadata in `chrome.storage.session` so it survives the service worker being suspended.
+  Nothing is synchronised through the browser account, and passwords are stored unencrypted
+  — see [PRIVACY.md](PRIVACY.md).
 - Host permissions (`http://*/*`, `https://*/*`, `ws://*/*`, `wss://*/*`) — the extension
   talks directly to whatever RouterOS device the user configures, which can be any LAN or
   WAN address, so the permission cannot be narrowed to a fixed origin. These permissions are
@@ -200,6 +217,39 @@ Manifest permissions and why each is requested:
 
 No data leaves the browser except the calls the extension makes directly to the RouterOS
 REST API endpoint(s) the user configures. See [PRIVACY.md](PRIVACY.md) for details.
+
+## Adding a domain twice
+
+Adds are idempotent. Before writing, the extension reads the router's static DNS list once
+per batch and then, per domain:
+
+- creates the record if no entry with that name exists;
+- updates the existing entry (`PATCH`) if one exists but differs;
+- does nothing if an equivalent entry is already there.
+
+The result view says which of the three happened for each domain, and reports how many extra
+records with the same name the router already holds — for example duplicates left behind by
+earlier versions. Those are reported, not deleted; remove them yourself if you want to.
+
+## Development
+
+```bash
+npm ci
+npm run lint            # eslint
+npm test                # node --test, no extra dependencies
+npm run validate:manifest
+npm run build           # unpacked extension into dist/wdrosdns
+npm run update:psl      # refresh the bundled Public Suffix List
+```
+
+The packaged file list is derived from `manifest.json` and the HTML/JS reference graph, so a
+new module is picked up automatically. CI builds and validates the ZIP on every push; the
+release workflow additionally requires the git tag, `manifest.json` and `package.json`
+versions to agree.
+
+`validate:manifest` also fails if `.github/workflows/release.yml` packages files by hand and
+that list has fallen behind the manifest — a release built from a stale list produces a ZIP
+that cannot load. Using `npm run build` in the workflow removes the list, and the check.
 
 ## Install
 
