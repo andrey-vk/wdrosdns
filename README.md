@@ -250,7 +250,8 @@ The **Records…** button in the popup's DNS block opens the static records of t
 a separate window. It shows every static record (dynamic entries are left out) in a table with:
 
 - search by name, type, target, address-list and comment;
-- a filter for records that carry the profile's comment (the comment set in the settings), and a
+- a filter for records that carry the profile's comment (the comment set in the settings; on by
+  default), and a
   filter for disabled records only;
 - sorting by any column;
 - multi-select with bulk **Disable**, **Enable** and **Delete**, plus the same actions per row.
