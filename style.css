@@ -623,6 +623,37 @@ button.iconBtn.sm {
   margin-bottom: 8px;
 }
 
+.checkLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.dnsStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.dnsHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dnsRecord {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .listFoot {
   display: flex;
   align-items: center;

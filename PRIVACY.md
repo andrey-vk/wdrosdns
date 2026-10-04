@@ -22,6 +22,11 @@ when it shuts down. It survives only so that the collector does not lose what it
 when the extension's service worker is suspended, which Manifest V3 does whenever the
 extension is idle.
 
+The list of static DNS records on your router (names, types, addresses, forward-to targets,
+address lists and comments) is also kept in `chrome.storage.session`, so that the toolbar badge
+and the popup can show DNS presence without asking the router again. It is discarded in the same
+way when the browser shuts down.
+
 ### About the stored password
 
 RouterOS passwords are stored **unencrypted**. Browser extension storage is not a secure

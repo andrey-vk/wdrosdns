@@ -32,29 +32,44 @@ export function restoreFetch() {
   globalThis.fetch = realFetch;
 }
 
-// In-memory chrome.storage.local, enough for loadSettings/saveSettings.
-export function stubChromeStorage(initial = {}) {
-  const store = { ...initial };
+// In-memory chrome.storage areas, enough for loadSettings/saveSettings and the
+// session-scoped DNS cache.
+function storageArea(store) {
+  return {
+    async get(defaults) {
+      if (defaults === null || defaults === undefined) return { ...store };
+      const wanted = typeof defaults === "string"
+        ? { [defaults]: undefined }
+        : Array.isArray(defaults)
+          ? Object.fromEntries(defaults.map(key => [key, undefined]))
+          : defaults;
+      const out = {};
+      for (const [key, fallback] of Object.entries(wanted)) {
+        out[key] = key in store ? store[key] : fallback;
+      }
+      return out;
+    },
+    async set(values) {
+      Object.assign(store, values);
+    },
+    async remove(keys) {
+      for (const key of [].concat(keys)) delete store[key];
+    }
+  };
+}
+
+export function stubChromeStorage(initial = {}, session = {}) {
+  const local = { ...initial };
+  const sessionStore = { ...session };
 
   globalThis.chrome = {
     storage: {
-      local: {
-        async get(defaults) {
-          if (defaults === null || defaults === undefined) return { ...store };
-          const out = {};
-          for (const [key, fallback] of Object.entries(defaults)) {
-            out[key] = key in store ? store[key] : fallback;
-          }
-          return out;
-        },
-        async set(values) {
-          Object.assign(store, values);
-        }
-      }
+      local: storageArea(local),
+      session: storageArea(sessionStore)
     }
   };
 
-  return store;
+  return local;
 }
 
 export function profile(overrides = {}) {

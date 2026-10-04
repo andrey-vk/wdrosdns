@@ -708,6 +708,108 @@ export async function ensureStaticDns(profile, domain, recordSettings, timeoutMs
   return { ...r, action: r.ok ? "created" : "", duplicates: 0 };
 }
 
+/* --- DNS presence ---
+   What the router already holds, as seen from the browser. Presence is answered
+   from a session-scoped cache so that badges and row statuses cost no requests;
+   the router is only asked by an explicit refresh or as a side effect of an add. */
+
+const DNS_CACHE_PREFIX = "dnsCache:";
+
+// Only the fields the presence checks and the record list use. Comments and
+// addresses are kept because the UI shows them; nothing else is retained.
+export function slimStaticDnsRecord(record) {
+  return {
+    id: staticDnsRecordId(record),
+    name: normalizeHost(record.name),
+    type: String(record.type || ""),
+    address: String(record.address || ""),
+    forwardTo: String(record["forward-to"] || ""),
+    addressList: String(record["address-list"] || ""),
+    comment: String(record.comment || ""),
+    matchSubdomain: boolish(record["match-subdomain"]) === true,
+    disabled: boolish(record.disabled) === true,
+    dynamic: boolish(record.dynamic) === true
+  };
+}
+
+export async function readDnsCache(profileId) {
+  if (!profileId) return null;
+
+  const key = DNS_CACHE_PREFIX + profileId;
+  const stored = await chrome.storage.session.get(key);
+  const value = stored[key];
+
+  return value && Array.isArray(value.records) ? value : null;
+}
+
+export async function writeDnsCache(profileId, records, now = Date.now()) {
+  const value = {
+    fetchedAt: now,
+    records: (records || []).map(slimStaticDnsRecord)
+  };
+
+  await chrome.storage.session.set({ [DNS_CACHE_PREFIX + profileId]: value });
+  return value;
+}
+
+export async function removeDnsCacheRecords(profileId, ids) {
+  const cache = await readDnsCache(profileId);
+  if (!cache) return null;
+
+  const gone = new Set(ids.map(String));
+  return writeDnsCache(
+    profileId,
+    cache.records.filter(r => !gone.has(String(r.id))),
+    cache.fetchedAt
+  );
+}
+
+// Dynamic entries are not static records, so they are left out here for the same
+// reason ensureStaticDns ignores them: they cannot be managed from the extension.
+export function buildDnsIndex(records) {
+  const index = new Map();
+
+  for (const record of records || []) {
+    if (record.dynamic) continue;
+    if (!index.has(record.name)) index.set(record.name, []);
+    index.get(record.name).push(record);
+  }
+
+  return index;
+}
+
+// States, in priority order:
+//   exact     an enabled record with exactly this name
+//   covered   an enabled parent record with match-subdomain=yes
+//   disabled  only disabled records with this name exist
+//   absent    nothing
+export function dnsStatusForHost(index, host) {
+  const name = normalizeHost(host);
+  if (!name) return { state: "absent", records: [], coveredBy: null };
+
+  const exact = index.get(name) || [];
+  if (exact.some(r => !r.disabled)) {
+    return { state: "exact", records: exact, coveredBy: null };
+  }
+
+  const labels = name.split(".");
+  for (let i = 1; i < labels.length; i++) {
+    const parent = labels.slice(i).join(".");
+    const cover = (index.get(parent) || []).find(r => !r.disabled && r.matchSubdomain);
+    if (cover) return { state: "covered", records: exact, coveredBy: cover };
+  }
+
+  if (exact.length) return { state: "disabled", records: exact, coveredBy: null };
+  return { state: "absent", records: [], coveredBy: null };
+}
+
+export function deleteStaticDns(profile, id, timeoutMs) {
+  return routerFetch(profile, `/rest/ip/dns/static/${encodeURIComponent(String(id))}`, {
+    method: "DELETE",
+    timeoutMs
+  });
+}
+
 export function normalizeResolveServer(server) {
   const v = String(server === null || server === undefined ? "" : server).trim();
   if (!v) return DEFAULT_RESOLVE_SERVER;
@@ -781,7 +883,8 @@ export async function addDomainsUsingDetection(domains, options = {}) {
     return { ok: false, detection, profile, invalidDomains, reason: "list_failed", list: existing };
   }
 
-  const records = existing.records.slice();
+  let records = existing.records.slice();
+  let updatedAny = false;
 
   const results = [];
   for (const domain of unique) {
@@ -791,9 +894,19 @@ export async function addDomainsUsingDetection(domains, options = {}) {
     if (add.ok && add.action === "created" && add.data && typeof add.data === "object") {
       records.push(add.data);
     }
+    if (add.ok && add.action === "updated") updatedAny = true;
 
     results.push({ domain, add });
   }
+
+  // A PATCH reply is not guaranteed to carry the whole record, so after any
+  // update the list is read again instead of guessing what changed.
+  if (updatedAny) {
+    const relisted = await fetchStaticDns(profile, eff.requestTimeoutMs);
+    if (relisted.ok) records = relisted.records;
+  }
+
+  await writeDnsCache(profile.id, records).catch(() => {});
 
   const resolveResults = [];
   let resolveTargets = [];

@@ -501,5 +501,78 @@
   },
   "updateProfileIdentity": {
     "message": "Изменить identity у найденного профиля"
+  },
+  "dnsStatusExact": {
+    "message": "В DNS"
+  },
+  "dnsStatusCovered": {
+    "message": "В DNS (через родителя)"
+  },
+  "dnsStatusDisabled": {
+    "message": "Отключена"
+  },
+  "dnsStatusAbsent": {
+    "message": "Нет в DNS"
+  },
+  "dnsStatusUnknown": {
+    "message": "Нет данных"
+  },
+  "dnsRefresh": {
+    "message": "Обновить список DNS"
+  },
+  "dnsDelete": {
+    "message": "Удалить из DNS"
+  },
+  "dnsOnlyAbsent": {
+    "message": "Нет в DNS"
+  },
+  "dnsAbsentCount": {
+    "message": "не в DNS: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "dnsCoveredBy": {
+    "message": "через $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "dnsUpdatedAt": {
+    "message": "обновлено $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "dnsNotLoaded": {
+    "message": "Список DNS не загружен — нажмите ↻"
+  },
+  "dnsDeleteConfirm": {
+    "message": "Удалить записи для «$1» с роутера ($2 шт.)?",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "dnsDeleteFailed": {
+    "message": "Не удалось удалить записи: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "dnsRefreshFailed": {
+    "message": "Не удалось обновить список DNS"
   }
 }

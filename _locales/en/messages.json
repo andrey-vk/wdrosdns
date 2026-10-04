@@ -501,5 +501,78 @@
   },
   "updateProfileIdentity": {
     "message": "Update identity in this profile"
+  },
+  "dnsStatusExact": {
+    "message": "In DNS"
+  },
+  "dnsStatusCovered": {
+    "message": "In DNS (via parent)"
+  },
+  "dnsStatusDisabled": {
+    "message": "Disabled"
+  },
+  "dnsStatusAbsent": {
+    "message": "Not in DNS"
+  },
+  "dnsStatusUnknown": {
+    "message": "No data"
+  },
+  "dnsRefresh": {
+    "message": "Refresh DNS list"
+  },
+  "dnsDelete": {
+    "message": "Delete from DNS"
+  },
+  "dnsOnlyAbsent": {
+    "message": "Not in DNS"
+  },
+  "dnsAbsentCount": {
+    "message": "not in DNS: $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "dnsCoveredBy": {
+    "message": "via $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "dnsUpdatedAt": {
+    "message": "updated $1",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "dnsNotLoaded": {
+    "message": "DNS list not loaded — press ↻"
+  },
+  "dnsDeleteConfirm": {
+    "message": "Delete $2 record(s) for \"$1\" from the router?",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "dnsDeleteFailed": {
+    "message": "Could not delete $1 record(s)",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "dnsRefreshFailed": {
+    "message": "Could not refresh the DNS list"
   }
 }

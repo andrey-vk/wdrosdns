@@ -7,6 +7,25 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-04
+
+### Added
+
+- **DNS presence.** The popup shows whether the current host is already a static DNS entry on
+  the active router, and which record covers it: in DNS, via a parent with `match-subdomain`,
+  disabled, or not in DNS. The toolbar icon badge shows the same state for the current tab.
+- Every network domain in the collector gets the same status chip, and a `Not in DNS` filter
+  narrows the list to domains an add would create.
+- Static DNS records can be deleted from the popup, after a confirmation.
+- The router's static DNS list is cached in `chrome.storage.session`. It is loaded when the popup
+  first opens with nothing cached, on the refresh button, and as a side effect of an add. The
+  presence checks themselves never ask the router. Opening the popup still identifies the router
+  with a request, as before.
+
+### Changed
+
+- The router that answers detection becomes the last used profile, so the badge follows it.
+
 ## [0.7.0] - 2026-08-07
 
 ### Fixed

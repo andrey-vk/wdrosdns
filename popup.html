@@ -32,6 +32,19 @@
 
       <div id="recordChips" class="badgeRow recordChips" data-i18n-title="recordChipsTitle" title="DNS record settings"></div>
 
+      <div id="dnsStatus" class="dnsStatus hidden">
+        <div class="dnsHead">
+          <span id="dnsChip" class="badge"></span>
+          <span id="dnsText" class="grow ellipsis"></span>
+          <span id="dnsAge" class="faint"></span>
+          <button id="dnsRefreshBtn" class="iconBtn sm quiet" data-i18n-title="dnsRefresh" title="Refresh">↻</button>
+        </div>
+        <div id="dnsRecords" class="hidden"></div>
+        <div id="dnsActions" class="buttonRow right hidden">
+          <button id="dnsDeleteBtn" data-i18n="dnsDelete">Delete from DNS</button>
+        </div>
+      </div>
+
       <details class="extraBox">
         <summary data-i18n="additionalDomains">Additional domains</summary>
         <textarea id="extraDomains" rows="3" data-i18n-placeholder="additionalDomainsPlaceholder" placeholder="one.example.com&#10;two.example.com"></textarea>
@@ -52,6 +65,7 @@
 
       <div class="toolRow">
         <input id="collectorSearch" class="grow" type="search" data-i18n-placeholder="searchDomains" placeholder="Search">
+        <label class="checkLabel faint"><input id="onlyAbsent" type="checkbox"> <span data-i18n="dnsOnlyAbsent">Not in DNS</span></label>
         <div class="popWrap">
           <button id="filtersBtn"><span data-i18n="filters">Filters</span> <span id="filtersCount" class="badge accent"></span></button>
           <div id="filtersPopover" class="popover hidden"></div>

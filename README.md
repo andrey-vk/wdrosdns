@@ -24,6 +24,10 @@ Edge/Chrome MV3 extension for adding current page domains and Network request do
   - groups domains by host/base-host with HTTP status and error badges;
   - search field, filter popover (`show all` included), select all/none, selection counter;
   - one primary action (add selected) with `add shown` / `add all captured` in its menu.
+- DNS presence for the current host: a status chip (in DNS, via parent, disabled, not in DNS),
+  the matching records, a refresh button and a delete action.
+- Each network domain row shows the same status as a chip, and `not in DNS` filters the list
+  down to domains that an add would create.
 - Result block: one line per domain with add and `:resolve` outcome, plus the raw router
   response behind a details toggle.
 
@@ -217,6 +221,28 @@ Manifest permissions and why each is requested:
 
 No data leaves the browser except the calls the extension makes directly to the RouterOS
 REST API endpoint(s) the user configures. See [PRIVACY.md](PRIVACY.md) for details.
+
+## DNS presence
+
+The extension shows whether a host is already a static DNS entry on the active router, and
+which record covers it:
+
+- **In DNS**: an enabled record with exactly this name.
+- **In DNS (via parent)**: an enabled parent record with `match-subdomain=yes`, such as
+  `example.com` covering `api.example.com`.
+- **Disabled**: records with this name exist, but all are disabled.
+- **Not in DNS**: nothing matches. Dynamic entries (DHCP leases and the like) are not counted,
+  because they cannot be managed from the extension.
+
+The toolbar icon badge shows the same state for the current tab's host: `✓` in DNS, `!` disabled,
+`✕` not in DNS, `?` no data yet.
+
+The router is not polled for this. The list of static records is kept in `chrome.storage.session`
+and is read from there for the badge and the popup. It is loaded when the popup first opens with
+nothing cached, when you press the refresh button, and after an add. An add also updates the
+cache, so the router is not asked again just to confirm what was written.
+
+Deleting removes every record with the host's name from the router, after a confirmation.
 
 ## Adding a domain twice
 

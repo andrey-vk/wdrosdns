@@ -10,6 +10,14 @@ import {
   trimToBaseDomain,
   filterNetworkEntries,
   normalizeDomainCollector,
+  effectiveProfileSettings,
+  fetchStaticDns,
+  deleteStaticDns,
+  readDnsCache,
+  writeDnsCache,
+  removeDnsCacheRecords,
+  buildDnsIndex,
+  dnsStatusForHost,
   DEFAULT_DOMAIN_COLLECTOR
 } from "./common.js";
 
@@ -260,6 +268,86 @@ chrome.tabs.onRemoved.addListener(forgetTab);
 // Prime the caches as soon as the worker starts instead of on first use.
 cachedSettings().catch(() => {});
 
+/* --- toolbar badge ---
+   Shows whether the current tab's host already has a static DNS entry on the
+   active router. It is computed from the session cache only, so it costs no
+   requests; the router is asked only by an explicit refresh or an add. */
+
+const BADGE_STYLE = {
+  exact: { text: "✓", color: "#2e7d32" },
+  covered: { text: "✓", color: "#2e7d32" },
+  disabled: { text: "!", color: "#b26a00" },
+  absent: { text: "✕", color: "#8a8a8a" },
+  unknown: { text: "?", color: "#5f6368" }
+};
+
+async function activeDnsIndex() {
+  const settings = await cachedSettings();
+  const cache = await readDnsCache(settings.lastProfileId);
+  return cache ? buildDnsIndex(cache.records) : null;
+}
+
+async function paintTab(tab, index) {
+  if (!tab || tab.id === undefined || !/^https?:/i.test(tab.url || "")) return;
+
+  const host = hostnameFromUrl(tab.url);
+  const state = index ? dnsStatusForHost(index, host).state : "unknown";
+  const style = BADGE_STYLE[state];
+  const stateLabel = chrome.i18n.getMessage(`dnsStatus${state[0].toUpperCase()}${state.slice(1)}`) || state;
+
+  try {
+    await Promise.all([
+      chrome.action.setBadgeText({ tabId: tab.id, text: style.text }),
+      chrome.action.setBadgeBackgroundColor({ tabId: tab.id, color: style.color }),
+      chrome.action.setTitle({ tabId: tab.id, title: `${host}: ${stateLabel}` })
+    ]);
+  } catch {
+    // The tab may have closed while the badge was being computed.
+  }
+}
+
+async function paintBadges(tabId = null) {
+  const index = await activeDnsIndex().catch(() => null);
+
+  if (tabId !== null) {
+    const tab = await chrome.tabs.get(tabId).catch(() => null);
+    await paintTab(tab, index);
+    return;
+  }
+
+  for (const tab of await chrome.tabs.query({})) {
+    await paintTab(tab, index);
+  }
+}
+
+chrome.tabs.onActivated.addListener(({ tabId }) => { paintBadges(tabId).catch(() => {}); });
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url === undefined && changeInfo.status !== "complete") return;
+  activeDnsIndex()
+    .catch(() => null)
+    .then(index => paintTab(tab, index))
+    .catch(() => {});
+});
+
+chrome.storage.session.onChanged.addListener(changes => {
+  if (Object.keys(changes).some(key => key.startsWith("dnsCache:"))) {
+    paintBadges().catch(() => {});
+  }
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && "lastProfileId" in changes) {
+    paintBadges().catch(() => {});
+  }
+});
+
+paintBadges().catch(() => {});
+
+function profileById(settings, id) {
+  return settings.profiles.find(p => p.id === id) || null;
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   (async () => {
     try {
@@ -318,7 +406,58 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === "DETECT_ROUTER") {
         const settings = await cachedSettings();
         const result = await detectRouter(settings, message.preferredProfileId || null);
+
+        // A profile that actually answered is the one the badge and the DNS cache
+        // should describe from now on, so it becomes the last used profile.
+        const matched = result.status === "matched" || result.status === "matched_other_identity_profile";
+        if (matched && result.profile && result.profile.id !== settings.lastProfileId) {
+          await chrome.storage.local.set({ lastProfileId: result.profile.id });
+        }
+
         sendResponse(result);
+        return;
+      }
+
+      if (message.type === "REFRESH_STATIC_DNS") {
+        const settings = await cachedSettings();
+        const profile = profileById(settings, message.profileId || settings.lastProfileId);
+        if (!profile) {
+          sendResponse({ ok: false, error: "profile_not_found" });
+          return;
+        }
+
+        const eff = effectiveProfileSettings(settings, profile);
+        const list = await fetchStaticDns(profile, eff.requestTimeoutMs);
+        if (!list.ok) {
+          sendResponse({ ok: false, reason: "list_failed", profileId: profile.id, list });
+          return;
+        }
+
+        const cache = await writeDnsCache(profile.id, list.records);
+        sendResponse({ ok: true, profileId: profile.id, cache });
+        return;
+      }
+
+      if (message.type === "DELETE_STATIC_DNS") {
+        const settings = await cachedSettings();
+        const profile = profileById(settings, message.profileId || settings.lastProfileId);
+        if (!profile) {
+          sendResponse({ ok: false, error: "profile_not_found" });
+          return;
+        }
+
+        const eff = effectiveProfileSettings(settings, profile);
+        const deleted = [];
+        const failed = [];
+
+        for (const id of Array.isArray(message.ids) ? message.ids : []) {
+          const r = await deleteStaticDns(profile, id, eff.requestTimeoutMs);
+          if (r.ok) deleted.push(String(id));
+          else failed.push({ id: String(id), result: r });
+        }
+
+        if (deleted.length) await removeDnsCacheRecords(profile.id, deleted);
+        sendResponse({ ok: failed.length === 0, profileId: profile.id, deleted, failed });
         return;
       }
 

@@ -6,7 +6,10 @@ import {
   effectiveProfileSettings,
   filterNetworkEntries,
   normalizeDomainCollector,
-  reconcileSelection
+  reconcileSelection,
+  readDnsCache,
+  buildDnsIndex,
+  dnsStatusForHost
 } from "./common.js";
 import { createResultView } from "./result-view.js";
 import { applyI18n, t, fmt } from "./i18n.js";
@@ -54,7 +57,17 @@ const el = {
   resultSummary: $("resultSummary"),
   resultList: $("resultList"),
   rawBox: $("rawBox"),
-  rawJson: $("rawJson")
+  rawJson: $("rawJson"),
+
+  dnsStatus: $("dnsStatus"),
+  dnsChip: $("dnsChip"),
+  dnsText: $("dnsText"),
+  dnsAge: $("dnsAge"),
+  dnsRefreshBtn: $("dnsRefreshBtn"),
+  dnsRecords: $("dnsRecords"),
+  dnsActions: $("dnsActions"),
+  dnsDeleteBtn: $("dnsDeleteBtn"),
+  onlyAbsent: $("onlyAbsent")
 };
 
 const resultView = createResultView({
@@ -83,6 +96,21 @@ let popupCollector = null;
 // itself. `knownDomains` is what makes "seen before" different from "new".
 const selection = new Set();
 const knownDomains = new Set();
+
+// What the router holds, read from the session cache. Nothing here asks the
+// router; only the refresh button and a first load after detection do.
+const dnsState = { cache: null, index: null };
+
+const DNS_STATE_KEY = {
+  exact: "dnsStatusExact",
+  covered: "dnsStatusCovered",
+  disabled: "dnsStatusDisabled",
+  absent: "dnsStatusAbsent",
+  unknown: "dnsStatusUnknown"
+};
+
+const DNS_CHIP_CLASS = { exact: "ok", covered: "ok", disabled: "warn", absent: "", unknown: "" };
+const DNS_CHIP_TEXT = { exact: "✓", covered: "✓", disabled: "!", absent: "✕", unknown: "?" };
 
 /* --- generic ui helpers --- */
 
@@ -162,6 +190,7 @@ function renderProfilePopover() {
       closePopovers();
       applyProfileDefaults();
       renderProfilePopover();
+      loadDnsCache();
       detectRouter(false);
     });
 
@@ -225,6 +254,7 @@ function syncSelectedProfile(profile, identity) {
   if (profile.id && profile.id !== selectedProfileId) {
     selectedProfileId = profile.id;
     renderProfilePopover();
+    loadDnsCache();
   }
 
   applyProfileDefaults();
@@ -388,7 +418,9 @@ function renderFiltersPopover() {
 
 function visibleRows() {
   const q = el.collectorSearch.value.trim().toLowerCase();
-  return q ? collectorRows.filter(r => r.domain.includes(q)) : collectorRows;
+  let rows = q ? collectorRows.filter(r => r.domain.includes(q)) : collectorRows;
+  if (el.onlyAbsent.checked) rows = rows.filter(r => r.dns === "absent");
+  return rows;
 }
 
 function renderCollector() {
@@ -412,6 +444,9 @@ function renderCollector() {
   );
 
   collectorRows = buildCollectorRows(entries);
+  for (const row of collectorRows) {
+    row.dns = dnsStatusFor(row.domain);
+  }
   reconcileSelection(collectorRows.map(r => r.domain), selection, knownDomains);
   const rows = visibleRows();
 
@@ -419,6 +454,11 @@ function renderCollector() {
     (lastNetworkResult.entries || []).length,
     collectorRows.length
   ]);
+
+  if (dnsState.index) {
+    const absent = collectorRows.filter(r => r.dns === "absent").length;
+    el.collectorInfo.textContent += ` · ${fmt("dnsAbsentCount", [absent])}`;
+  }
 
   if (!rows.length) {
     const empty = document.createElement("div");
@@ -464,6 +504,14 @@ function renderCollector() {
       badge.className = "badge err";
       badge.textContent = shortError(error);
       item.appendChild(badge);
+    }
+
+    if (row.dns) {
+      const chip = document.createElement("span");
+      chip.className = `badge ${DNS_CHIP_CLASS[row.dns]}`.trim();
+      chip.textContent = DNS_CHIP_TEXT[row.dns];
+      chip.title = t(DNS_STATE_KEY[row.dns]);
+      item.appendChild(chip);
     }
 
     const count = document.createElement("span");
@@ -529,6 +577,112 @@ async function collectNetwork() {
   renderCollector();
 }
 
+/* --- DNS presence --- */
+
+function dnsProfileId() {
+  const profile = selectedProfile();
+  return profile ? profile.id : null;
+}
+
+function dnsStatusFor(host) {
+  if (!dnsState.index || !host) return null;
+  return dnsStatusForHost(dnsState.index, host).state;
+}
+
+async function loadDnsCache() {
+  dnsState.cache = await readDnsCache(dnsProfileId()).catch(() => null);
+  dnsState.index = dnsState.cache ? buildDnsIndex(dnsState.cache.records) : null;
+  renderDnsStatus();
+  renderCollector();
+}
+
+function formatTime(ms) {
+  return new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function recordTarget(record) {
+  if (record.type === "A") return record.address;
+  if (record.forwardTo) return record.forwardTo;
+  return record.addressList;
+}
+
+function renderDnsStatus() {
+  const host = rawCurrentHost;
+  el.dnsStatus.classList.toggle("hidden", !host);
+  if (!host) return;
+
+  const status = dnsState.index ? dnsStatusForHost(dnsState.index, host) : null;
+  const state = status ? status.state : "unknown";
+
+  el.dnsChip.className = `badge ${DNS_CHIP_CLASS[state]}`.trim();
+  el.dnsChip.textContent = t(DNS_STATE_KEY[state]);
+
+  if (state === "covered") {
+    el.dnsText.textContent = fmt("dnsCoveredBy", [status.coveredBy.name]);
+  } else if (state === "unknown") {
+    el.dnsText.textContent = t("dnsNotLoaded");
+  } else {
+    el.dnsText.textContent = "";
+  }
+
+  el.dnsAge.textContent = dnsState.cache ? fmt("dnsUpdatedAt", [formatTime(dnsState.cache.fetchedAt)]) : "";
+
+  el.dnsRecords.innerHTML = "";
+  const listed = status && (state === "exact" || state === "disabled") ? status.records : [];
+  for (const record of listed) {
+    const line = document.createElement("div");
+    line.className = "dnsRecord";
+    const flags = [
+      record.type,
+      recordTarget(record),
+      record.matchSubdomain ? "match-subdomain" : "",
+      record.disabled ? t("dnsStatusDisabled") : ""
+    ].filter(Boolean);
+    line.textContent = `${record.name} · ${flags.join(" · ")}`;
+    el.dnsRecords.appendChild(line);
+  }
+  el.dnsRecords.classList.toggle("hidden", !listed.length);
+  el.dnsActions.classList.toggle("hidden", !listed.length);
+}
+
+async function refreshDns({ quiet = false } = {}) {
+  const profileId = dnsProfileId();
+  if (!profileId) return;
+
+  const run = async () => {
+    const result = await chrome.runtime.sendMessage({ type: "REFRESH_STATIC_DNS", profileId });
+    if (!result || !result.ok) {
+      if (!quiet) resultView.showError(t("dnsRefreshFailed"), result);
+      return;
+    }
+    await loadDnsCache();
+  };
+
+  if (quiet) return run();
+  return withBusy(el.dnsRefreshBtn, "…", run);
+}
+
+async function deleteDnsRecords() {
+  const host = rawCurrentHost;
+  const status = dnsState.index ? dnsStatusForHost(dnsState.index, host) : null;
+  if (!status || !status.records.length) return;
+
+  const ids = status.records.map(r => r.id).filter(Boolean);
+  if (!confirm(fmt("dnsDeleteConfirm", [host, ids.length]))) return;
+
+  const result = await chrome.runtime.sendMessage({
+    type: "DELETE_STATIC_DNS",
+    profileId: dnsProfileId(),
+    ids
+  });
+
+  if (!result || !result.ok) {
+    resultView.showError(fmt("dnsDeleteFailed", [result && result.failed ? result.failed.length : ids.length]), result);
+  }
+
+  await loadDnsCache();
+}
+
 /* --- actions --- */
 
 async function addDomains(domains, button) {
@@ -561,6 +715,7 @@ async function addDomains(domains, button) {
     }
 
     resultView.render(result);
+    if (result.ok) await loadDnsCache();
   });
 }
 
@@ -641,6 +796,10 @@ async function init() {
   renderCollector();
 
   await detectRouter(false);
+
+  // First open after a fresh start has nothing cached yet: one listing, quietly.
+  await loadDnsCache();
+  if (!dnsState.cache) refreshDns({ quiet: true });
 }
 
 /* --- events --- */
@@ -659,6 +818,9 @@ el.segBase.addEventListener("click", () => { modeChosen = true; setTrimMode(true
 el.segHost.addEventListener("click", () => { modeChosen = true; setTrimMode(false); });
 
 el.addBtn.addEventListener("click", () => addDomains(domainsFromForm(), el.addBtn));
+el.dnsRefreshBtn.addEventListener("click", () => refreshDns());
+el.dnsDeleteBtn.addEventListener("click", () => deleteDnsRecords());
+el.onlyAbsent.addEventListener("change", () => renderCollector());
 
 el.currentDomain.addEventListener("input", () => { domainEdited = true; });
 
