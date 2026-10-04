@@ -645,6 +645,63 @@ button.iconBtn.sm {
   min-width: 0;
 }
 
+.recordsPage {
+  min-width: 960px;
+  padding: 0;
+}
+
+.recordsMain {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bulkBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recordsTable th.chk,
+.recordsTable td.chk {
+  width: 34px;
+}
+
+.recordsTable td.actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.recordsTable td.actions button {
+  margin-left: 4px;
+}
+
+.recordsTable td.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+}
+
+.recordsTable .disabledRow td {
+  color: var(--muted);
+}
+
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+th.sortable.sorted {
+  color: var(--text);
+}
+
+th.sortable::after {
+  content: attr(data-dir);
+  margin-left: 4px;
+  font-size: 9px;
+}
+
 .dnsRecord {
   font-size: 12px;
   color: var(--muted);

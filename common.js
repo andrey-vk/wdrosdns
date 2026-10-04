@@ -752,14 +752,35 @@ export async function writeDnsCache(profileId, records, now = Date.now()) {
   return value;
 }
 
+// Stores records that are already slimmed. Running them through
+// slimStaticDnsRecord again would read the slim keys as router keys and drop
+// match-subdomain and the targets, which breaks coverage checks.
+async function storeSlimDnsCache(profileId, slimRecords, fetchedAt) {
+  const value = { fetchedAt, records: slimRecords };
+  await chrome.storage.session.set({ [DNS_CACHE_PREFIX + profileId]: value });
+  return value;
+}
+
 export async function removeDnsCacheRecords(profileId, ids) {
   const cache = await readDnsCache(profileId);
   if (!cache) return null;
 
   const gone = new Set(ids.map(String));
-  return writeDnsCache(
+  return storeSlimDnsCache(
     profileId,
     cache.records.filter(r => !gone.has(String(r.id))),
+    cache.fetchedAt
+  );
+}
+
+export async function setDnsCacheDisabled(profileId, ids, disabled) {
+  const cache = await readDnsCache(profileId);
+  if (!cache) return null;
+
+  const changed = new Set(ids.map(String));
+  return storeSlimDnsCache(
+    profileId,
+    cache.records.map(r => (changed.has(String(r.id)) ? { ...r, disabled } : r)),
     cache.fetchedAt
   );
 }
@@ -801,6 +822,68 @@ export function dnsStatusForHost(index, host) {
 
   if (exact.length) return { state: "disabled", records: exact, coveredBy: null };
   return { state: "absent", records: [], coveredBy: null };
+}
+
+// The record's target as the router would show it: an address for A, the
+// forward-to server for FWD, otherwise the address-list it feeds.
+export function dnsRecordTarget(record) {
+  if (record.type === "A") return record.address;
+  if (record.forwardTo) return record.forwardTo;
+  return record.addressList;
+}
+
+// The router keeps no origin for a record, so ownership is the comment the
+// profile writes. A record with a different comment counts as someone else's.
+export function isOwnedDnsRecord(record, ownComment) {
+  return !!ownComment && String(record.comment || "") === String(ownComment);
+}
+
+export function filterDnsRecords(records, options = {}) {
+  const query = String(options.query || "").trim().toLowerCase();
+
+  return (records || []).filter(record => {
+    if (options.onlyOwned && !isOwnedDnsRecord(record, options.ownComment)) return false;
+    if (options.onlyDisabled && !record.disabled) return false;
+
+    if (query) {
+      const haystack = [
+        record.name,
+        record.type,
+        dnsRecordTarget(record),
+        record.addressList,
+        record.comment
+      ].join(" ").toLowerCase();
+      if (!haystack.includes(query)) return false;
+    }
+
+    return true;
+  });
+}
+
+const DNS_SORT_VALUE = {
+  name: r => r.name,
+  type: r => r.type,
+  target: r => dnsRecordTarget(r) || "",
+  addressList: r => r.addressList || "",
+  comment: r => r.comment || "",
+  state: r => (r.disabled ? "1" : "0")
+};
+
+export function sortDnsRecords(records, key = "name", direction = 1) {
+  const value = DNS_SORT_VALUE[key] || DNS_SORT_VALUE.name;
+
+  return [...(records || [])].sort((a, b) => {
+    const cmp = String(value(a)).localeCompare(String(value(b)), undefined, { numeric: true });
+    return cmp * direction || String(a.name).localeCompare(String(b.name));
+  });
+}
+
+export function setStaticDnsDisabled(profile, id, disabled, timeoutMs) {
+  return routerFetch(profile, `/rest/ip/dns/static/${encodeURIComponent(String(id))}`, {
+    method: "PATCH",
+    body: JSON.stringify({ disabled: disabled ? "yes" : "no" }),
+    timeoutMs
+  });
 }
 
 export function deleteStaticDns(profile, id, timeoutMs) {

@@ -588,5 +588,145 @@
         "content": "$2"
       }
     }
+  },
+  "recordsOpenWindow": {
+    "message": "Записи…"
+  },
+  "recordsTitle": {
+    "message": "Статические DNS-записи"
+  },
+  "recordsSearch": {
+    "message": "Поиск по имени, цели, списку или комментарию"
+  },
+  "recordsOnlyOwned": {
+    "message": "Только мои (комментарий «$1»)",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsOnlyDisabled": {
+    "message": "Только выключенные"
+  },
+  "recordsDisable": {
+    "message": "Выключить"
+  },
+  "recordsEnable": {
+    "message": "Включить"
+  },
+  "recordsDelete": {
+    "message": "Удалить"
+  },
+  "recordsRefresh": {
+    "message": "Обновить"
+  },
+  "recordsSelected": {
+    "message": "Выбрано $1 из $2",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "recordsNoMatch": {
+    "message": "Нет записей, подходящих под фильтры."
+  },
+  "recordsEmpty": {
+    "message": "На роутере нет статических записей."
+  },
+  "recordsRefreshFailed": {
+    "message": "Не удалось загрузить записи с роутера."
+  },
+  "recordsDeleteConfirm": {
+    "message": "Удалить с роутера записей: $1?",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsDeletedDone": {
+    "message": "Удалено: $1.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsDisabledDone": {
+    "message": "Выключено: $1.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsEnabledDone": {
+    "message": "Включено: $1.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsPartial": {
+    "message": "Выполнено $1, с ошибкой $2.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "recordsColName": {
+    "message": "Имя"
+  },
+  "recordsColType": {
+    "message": "Тип"
+  },
+  "recordsColTarget": {
+    "message": "Цель"
+  },
+  "recordsColList": {
+    "message": "Address-list"
+  },
+  "recordsColSubdomain": {
+    "message": "Поддомены"
+  },
+  "recordsColState": {
+    "message": "Состояние"
+  },
+  "recordsColComment": {
+    "message": "Комментарий"
+  },
+  "recordsStateOn": {
+    "message": "Вкл"
+  },
+  "recordsStateOff": {
+    "message": "Выкл"
+  },
+  "recordsRowDisable": {
+    "message": "Выключить"
+  },
+  "recordsRowEnable": {
+    "message": "Включить"
+  },
+  "recordsRowDelete": {
+    "message": "Удалить"
+  },
+  "recordsYes": {
+    "message": "да"
+  },
+  "recordsNo": {
+    "message": "нет"
+  },
+  "recordsOwnerMine": {
+    "message": "Комментарий этого профиля, поэтому считается созданным расширением"
   }
 }

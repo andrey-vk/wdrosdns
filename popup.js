@@ -64,6 +64,7 @@ const el = {
   dnsText: $("dnsText"),
   dnsAge: $("dnsAge"),
   dnsRefreshBtn: $("dnsRefreshBtn"),
+  dnsManageBtn: $("dnsManageBtn"),
   dnsRecords: $("dnsRecords"),
   dnsActions: $("dnsActions"),
   dnsDeleteBtn: $("dnsDeleteBtn"),
@@ -649,6 +650,18 @@ function renderDnsStatus() {
   el.dnsDeleteBtn.textContent = t(state === "covered" ? "dnsDeleteCover" : "dnsDelete");
 }
 
+// A separate window: the table needs more room than the popup has.
+function openRecordsWindow() {
+  const profileId = dnsProfileId();
+  const query = profileId ? `?profile=${encodeURIComponent(profileId)}` : "";
+  chrome.windows.create({
+    url: chrome.runtime.getURL("records.html") + query,
+    type: "normal",
+    width: 1180,
+    height: 760
+  });
+}
+
 async function refreshDns({ quiet = false } = {}) {
   const profileId = dnsProfileId();
   if (!profileId) return;
@@ -833,6 +846,7 @@ el.segHost.addEventListener("click", () => { modeChosen = true; setTrimMode(fals
 
 el.addBtn.addEventListener("click", () => addDomains(domainsFromForm(), el.addBtn));
 el.dnsRefreshBtn.addEventListener("click", () => refreshDns());
+el.dnsManageBtn.addEventListener("click", () => openRecordsWindow());
 el.dnsDeleteBtn.addEventListener("click", () => deleteDnsRecords());
 el.onlyAbsent.addEventListener("change", () => renderCollector());
 

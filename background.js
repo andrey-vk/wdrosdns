@@ -16,6 +16,8 @@ import {
   readDnsCache,
   writeDnsCache,
   removeDnsCacheRecords,
+  setDnsCacheDisabled,
+  setStaticDnsDisabled,
   buildDnsIndex,
   dnsStatusForHost,
   DEFAULT_DOMAIN_COLLECTOR
@@ -435,6 +437,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         const cache = await writeDnsCache(profile.id, list.records);
         sendResponse({ ok: true, profileId: profile.id, cache });
+        return;
+      }
+
+      if (message.type === "SET_STATIC_DNS_DISABLED") {
+        const settings = await cachedSettings();
+        const profile = profileById(settings, message.profileId || settings.lastProfileId);
+        if (!profile) {
+          sendResponse({ ok: false, error: "profile_not_found" });
+          return;
+        }
+
+        const disabled = !!message.disabled;
+        const eff = effectiveProfileSettings(settings, profile);
+        const changed = [];
+        const failed = [];
+
+        for (const id of Array.isArray(message.ids) ? message.ids : []) {
+          const r = await setStaticDnsDisabled(profile, id, disabled, eff.requestTimeoutMs);
+          if (r.ok) changed.push(String(id));
+          else failed.push({ id: String(id), result: r });
+        }
+
+        if (changed.length) await setDnsCacheDisabled(profile.id, changed, disabled);
+        sendResponse({ ok: failed.length === 0, profileId: profile.id, disabled, changed, failed });
         return;
       }
 

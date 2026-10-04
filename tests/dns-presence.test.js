@@ -7,8 +7,14 @@ import {
   buildDnsIndex,
   deleteStaticDns,
   dnsStatusForHost,
+  dnsRecordTarget,
+  filterDnsRecords,
+  isOwnedDnsRecord,
   readDnsCache,
+  sortDnsRecords,
   removeDnsCacheRecords,
+  setDnsCacheDisabled,
+  setStaticDnsDisabled,
   slimStaticDnsRecord,
   writeDnsCache
 } from "../common.js";
@@ -127,6 +133,34 @@ test("the cache round-trips and removes only the requested ids", async () => {
   assert.equal(after.fetchedAt, 1000);
 });
 
+test("removing a record keeps the coverage fields of the records that remain", async () => {
+  stubChromeStorage({}, {});
+
+  await writeDnsCache("p1", [
+    rec({ ".id": "*1", name: "example.com", "match-subdomain": "yes", "forward-to": "1.1.1.1" }),
+    rec({ ".id": "*2", name: "other.net" })
+  ]);
+  await removeDnsCacheRecords("p1", ["*2"]);
+
+  const cache = await readDnsCache("p1");
+  assert.equal(cache.records[0].matchSubdomain, true);
+  assert.equal(cache.records[0].forwardTo, "1.1.1.1");
+
+  const index = buildDnsIndex(cache.records);
+  assert.equal(dnsStatusForHost(index, "api.example.com").state, "covered");
+});
+
+test("setDnsCacheDisabled flips only the named records", async () => {
+  stubChromeStorage({}, {});
+
+  await writeDnsCache("p1", [rec({ ".id": "*1" }), rec({ ".id": "*2", name: "b.com" })]);
+  await setDnsCacheDisabled("p1", ["*2"], true);
+
+  const cache = await readDnsCache("p1");
+  assert.deepEqual(cache.records.map(r => r.disabled), [false, true]);
+  assert.equal(cache.records[1].name, "b.com");
+});
+
 test("caches are per profile", async () => {
   stubChromeStorage({}, {});
 
@@ -144,6 +178,17 @@ test("deleteStaticDns sends DELETE for the record id", async () => {
   assert.equal(r.ok, true);
   assert.equal(calls[0].method, "DELETE");
   assert.match(calls[0].url, /\/rest\/ip\/dns\/static\/\*A1$/);
+});
+
+test("setStaticDnsDisabled sends PATCH with yes/no", async () => {
+  const calls = stubFetch(() => ({ status: 200, body: {} }));
+
+  await setStaticDnsDisabled(profile(), "*7", true, 5000);
+  await setStaticDnsDisabled(profile(), "*7", false, 5000);
+
+  assert.equal(calls[0].method, "PATCH");
+  assert.deepEqual(calls[0].body, { disabled: "yes" });
+  assert.deepEqual(calls[1].body, { disabled: "no" });
 });
 
 test("a refused delete is reported, not thrown", async () => {
@@ -213,4 +258,52 @@ test("an update in the batch re-reads the list instead of trusting the PATCH rep
 
   const cache = await readDnsCache("p1");
   assert.equal(cache.records[0].forwardTo, "9.9.9.9");
+});
+
+/* --- records table --- */
+
+function table() {
+  return [
+    slimStaticDnsRecord(rec({ ".id": "*1", name: "b.example", comment: "added-by-edge-extension", "forward-to": "1.1.1.1" })),
+    slimStaticDnsRecord(rec({ ".id": "*2", name: "a.example", type: "A", address: "10.0.0.5", comment: "manual", disabled: "true" })),
+    slimStaticDnsRecord(rec({ ".id": "*3", name: "c.example", comment: "added-by-edge-extension", "address-list": "vpn-fwd", "forward-to": "8.8.8.8" }))
+  ];
+}
+
+test("dnsRecordTarget picks the address for A and forward-to otherwise", () => {
+  const [fwd, a] = table();
+  assert.equal(dnsRecordTarget(fwd), "1.1.1.1");
+  assert.equal(dnsRecordTarget(a), "10.0.0.5");
+});
+
+test("ownership is an exact match on the profile's comment", () => {
+  const [mine, other] = table();
+  assert.equal(isOwnedDnsRecord(mine, "added-by-edge-extension"), true);
+  assert.equal(isOwnedDnsRecord(other, "added-by-edge-extension"), false);
+  assert.equal(isOwnedDnsRecord(mine, ""), false);
+});
+
+test("filter by owner, disabled state and free text, combined", () => {
+  const records = table();
+
+  assert.deepEqual(
+    filterDnsRecords(records, { onlyOwned: true, ownComment: "added-by-edge-extension" }).map(r => r.name),
+    ["b.example", "c.example"]
+  );
+  assert.deepEqual(filterDnsRecords(records, { onlyDisabled: true }).map(r => r.name), ["a.example"]);
+  assert.deepEqual(filterDnsRecords(records, { query: "10.0.0" }).map(r => r.name), ["a.example"]);
+  assert.deepEqual(filterDnsRecords(records, { query: "vpn-fwd" }).map(r => r.name), ["c.example"]);
+  assert.deepEqual(
+    filterDnsRecords(records, { query: "example", onlyOwned: true, ownComment: "manual" }).map(r => r.name),
+    ["a.example"]
+  );
+});
+
+test("sort by a column, both directions, and by a numeric-aware name", () => {
+  const records = table();
+
+  assert.deepEqual(sortDnsRecords(records, "name", 1).map(r => r.name), ["a.example", "b.example", "c.example"]);
+  assert.deepEqual(sortDnsRecords(records, "name", -1).map(r => r.name), ["c.example", "b.example", "a.example"]);
+  assert.deepEqual(sortDnsRecords(records, "state", 1).map(r => r.name)[2], "a.example");
+  assert.deepEqual(sortDnsRecords(records, "unknown-key", 1).map(r => r.name), ["a.example", "b.example", "c.example"]);
 });

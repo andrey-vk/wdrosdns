@@ -244,6 +244,22 @@ and is read from there for the badge and the popup. It is loaded when the popup 
 nothing cached, when you press the refresh button, and after an add. An add also updates the
 cache, so the router is not asked again just to confirm what was written.
 
+## Managing static records
+
+The **Records…** button in the popup's DNS block opens the static records of the active profile in
+a separate window. It shows every static record (dynamic entries are left out) in a table with:
+
+- search by name, type, target, address-list and comment;
+- a filter for records that carry the profile's comment (the comment set in the settings), and a
+  filter for disabled records only;
+- sorting by any column;
+- multi-select with bulk **Disable**, **Enable** and **Delete**, plus the same actions per row.
+
+The router is asked only when you press **Refresh** or when the list is not cached yet. Every
+change goes through the router and then updates the cache, so the toolbar badge and the popup
+stay in step with the table. Ownership is only a comment match: the router keeps no origin for a
+record, so a record with a different comment is treated as not created by the extension.
+
 Deleting removes every record with the host's name from the router, after a confirmation. When the
 host is covered by a parent record, the button deletes that parent instead; the confirmation says
 which other subdomains it covers as well. The status line names the tab's host, which can be more

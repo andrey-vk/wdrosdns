@@ -7,6 +7,21 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-04
+
+### Added
+
+- **Records window.** The popup's **Records…** button opens the static records of the active profile
+  in a separate window: a searchable, sortable table with a filter for records carrying the
+  profile's comment, a filter for disabled records, multi-select with bulk disable, enable and
+  delete, and the same actions per row.
+
+### Fixed
+
+- Removing a record from the cache dropped the coverage fields (`match-subdomain`, targets) of the
+  records that remained, so a host covered by a parent could be reported as absent until the next
+  refresh.
+
 ## [0.8.2] - 2026-10-04
 
 ### Changed

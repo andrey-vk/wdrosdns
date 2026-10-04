@@ -588,5 +588,145 @@
         "content": "$2"
       }
     }
+  },
+  "recordsOpenWindow": {
+    "message": "Records…"
+  },
+  "recordsTitle": {
+    "message": "Static DNS records"
+  },
+  "recordsSearch": {
+    "message": "Search by name, target, list or comment"
+  },
+  "recordsOnlyOwned": {
+    "message": "Only mine (comment \"$1\")",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsOnlyDisabled": {
+    "message": "Disabled only"
+  },
+  "recordsDisable": {
+    "message": "Disable"
+  },
+  "recordsEnable": {
+    "message": "Enable"
+  },
+  "recordsDelete": {
+    "message": "Delete"
+  },
+  "recordsRefresh": {
+    "message": "Refresh"
+  },
+  "recordsSelected": {
+    "message": "Selected $1 of $2",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "recordsNoMatch": {
+    "message": "No records match the filters."
+  },
+  "recordsEmpty": {
+    "message": "The router has no static records."
+  },
+  "recordsRefreshFailed": {
+    "message": "Could not load records from the router."
+  },
+  "recordsDeleteConfirm": {
+    "message": "Delete $1 record(s) from the router?",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsDeletedDone": {
+    "message": "Deleted: $1.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsDisabledDone": {
+    "message": "Disabled: $1.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsEnabledDone": {
+    "message": "Enabled: $1.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "recordsPartial": {
+    "message": "Done $1, failed $2.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "recordsColName": {
+    "message": "Name"
+  },
+  "recordsColType": {
+    "message": "Type"
+  },
+  "recordsColTarget": {
+    "message": "Target"
+  },
+  "recordsColList": {
+    "message": "Address list"
+  },
+  "recordsColSubdomain": {
+    "message": "Subdomains"
+  },
+  "recordsColState": {
+    "message": "State"
+  },
+  "recordsColComment": {
+    "message": "Comment"
+  },
+  "recordsStateOn": {
+    "message": "On"
+  },
+  "recordsStateOff": {
+    "message": "Off"
+  },
+  "recordsRowDisable": {
+    "message": "Disable"
+  },
+  "recordsRowEnable": {
+    "message": "Enable"
+  },
+  "recordsRowDelete": {
+    "message": "Delete"
+  },
+  "recordsYes": {
+    "message": "yes"
+  },
+  "recordsNo": {
+    "message": "no"
+  },
+  "recordsOwnerMine": {
+    "message": "Has this profile's comment, so it counts as created by the extension"
   }
 }

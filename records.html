@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MikroTik DNS records</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="recordsPage">
+  <header class="optionsHeader">
+    <h1 data-i18n="recordsTitle">Static DNS records</h1>
+    <select id="profileSelect" aria-label="Profile"></select>
+    <span id="recordsStatus" class="faint grow ellipsis"></span>
+    <button id="refreshBtn" class="quiet" data-i18n="recordsRefresh">Refresh</button>
+  </header>
+
+  <main class="recordsMain">
+    <div class="toolRow">
+      <input id="search" class="grow" type="search" data-i18n-placeholder="recordsSearch" placeholder="Search">
+      <label class="checkLabel"><input id="onlyOwned" type="checkbox"> <span id="ownedLabel"></span></label>
+      <label class="checkLabel"><input id="onlyDisabled" type="checkbox"> <span data-i18n="recordsOnlyDisabled">Disabled only</span></label>
+    </div>
+
+    <div class="bulkBar">
+      <span id="selectionInfo" class="faint grow"></span>
+      <button id="bulkDisable" disabled data-i18n="recordsDisable">Disable</button>
+      <button id="bulkEnable" disabled data-i18n="recordsEnable">Enable</button>
+      <button id="bulkDelete" class="danger" disabled data-i18n="recordsDelete">Delete</button>
+    </div>
+
+    <div class="tableWrap">
+      <table class="recordsTable">
+        <thead>
+          <tr>
+            <th class="chk"><input id="selectAll" type="checkbox" aria-label="Select all"></th>
+            <th class="sortable" data-sort="name" data-i18n="recordsColName">Name</th>
+            <th class="sortable" data-sort="type" data-i18n="recordsColType">Type</th>
+            <th class="sortable" data-sort="target" data-i18n="recordsColTarget">Target</th>
+            <th class="sortable" data-sort="addressList" data-i18n="recordsColList">Address list</th>
+            <th data-i18n="recordsColSubdomain">Subdomains</th>
+            <th class="sortable" data-sort="state" data-i18n="recordsColState">State</th>
+            <th class="sortable" data-sort="comment" data-i18n="recordsColComment">Comment</th>
+            <th class="actions"></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div id="emptyText" class="emptyText hidden"></div>
+  </main>
+
+  <script type="module" src="records.js"></script>
+</body>
+</html>
