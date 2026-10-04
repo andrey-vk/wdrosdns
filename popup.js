@@ -64,7 +64,7 @@ const el = {
   dnsText: $("dnsText"),
   dnsAge: $("dnsAge"),
   dnsRefreshBtn: $("dnsRefreshBtn"),
-  dnsManageBtn: $("dnsManageBtn"),
+  recordsBtn: $("recordsBtn"),
   dnsRecords: $("dnsRecords"),
   dnsActions: $("dnsActions"),
   dnsDeleteBtn: $("dnsDeleteBtn"),
@@ -846,7 +846,7 @@ el.segHost.addEventListener("click", () => { modeChosen = true; setTrimMode(fals
 
 el.addBtn.addEventListener("click", () => addDomains(domainsFromForm(), el.addBtn));
 el.dnsRefreshBtn.addEventListener("click", () => refreshDns());
-el.dnsManageBtn.addEventListener("click", () => openRecordsWindow());
+el.recordsBtn.addEventListener("click", () => openRecordsWindow());
 el.dnsDeleteBtn.addEventListener("click", () => deleteDnsRecords());
 el.onlyAbsent.addEventListener("change", () => renderCollector());
 

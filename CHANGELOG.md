@@ -7,6 +7,13 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-10-04
+
+### Changed
+
+- The **Records…** button moved to the popup's app bar, next to the router name, and is styled as a
+  primary action, so it no longer hides among the DNS controls.
+
 ## [0.9.0] - 2026-10-04
 
 ### Added

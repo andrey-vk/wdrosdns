@@ -728,5 +728,8 @@
   },
   "recordsOwnerMine": {
     "message": "Has this profile's comment, so it counts as created by the extension"
+  },
+  "recordsOpenWindowTitle": {
+    "message": "Static DNS records (open in a window)"
   }
 }

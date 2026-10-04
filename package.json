@@ -1,6 +1,6 @@
 {
   "name": "wdrosdns",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
   "type": "module",
   "description": "Chrome/Edge MV3 extension for managing MikroTik RouterOS static DNS entries",
