@@ -277,7 +277,7 @@ const BADGE_STYLE = {
   exact: { text: "✓", color: "#2e7d32" },
   covered: { text: "✓", color: "#2e7d32" },
   disabled: { text: "!", color: "#b26a00" },
-  absent: { text: "✕", color: "#8a8a8a" },
+  absent: { text: "", color: "#8a8a8a" },
   unknown: { text: "?", color: "#5f6368" }
 };
 

@@ -617,18 +617,21 @@ function renderDnsStatus() {
   el.dnsChip.className = `badge ${DNS_CHIP_CLASS[state]}`.trim();
   el.dnsChip.textContent = t(DNS_STATE_KEY[state]);
 
+  // Names the tab's host: the field above may show a base domain instead.
   if (state === "covered") {
-    el.dnsText.textContent = fmt("dnsCoveredBy", [status.coveredBy.name]);
+    el.dnsText.textContent = `${host} · ${fmt("dnsCoveredBy", [status.coveredBy.name])}`;
   } else if (state === "unknown") {
-    el.dnsText.textContent = t("dnsNotLoaded");
+    el.dnsText.textContent = `${host} · ${t("dnsNotLoaded")}`;
   } else {
-    el.dnsText.textContent = "";
+    el.dnsText.textContent = host;
   }
 
   el.dnsAge.textContent = dnsState.cache ? fmt("dnsUpdatedAt", [formatTime(dnsState.cache.fetchedAt)]) : "";
 
   el.dnsRecords.innerHTML = "";
-  const listed = status && (state === "exact" || state === "disabled") ? status.records : [];
+  const listed = status && (state === "exact" || state === "disabled")
+    ? status.records
+    : status && state === "covered" ? [status.coveredBy] : [];
   for (const record of listed) {
     const line = document.createElement("div");
     line.className = "dnsRecord";
@@ -643,6 +646,7 @@ function renderDnsStatus() {
   }
   el.dnsRecords.classList.toggle("hidden", !listed.length);
   el.dnsActions.classList.toggle("hidden", !listed.length);
+  el.dnsDeleteBtn.textContent = t(state === "covered" ? "dnsDeleteCover" : "dnsDelete");
 }
 
 async function refreshDns({ quiet = false } = {}) {
@@ -665,10 +669,20 @@ async function refreshDns({ quiet = false } = {}) {
 async function deleteDnsRecords() {
   const host = rawCurrentHost;
   const status = dnsState.index ? dnsStatusForHost(dnsState.index, host) : null;
-  if (!status || !status.records.length) return;
+  if (!status || (!status.records.length && !status.coveredBy)) return;
 
-  const ids = status.records.map(r => r.id).filter(Boolean);
-  if (!confirm(fmt("dnsDeleteConfirm", [host, ids.length]))) return;
+  // A covering parent is deleted on its own: it also covers every other
+  // subdomain, which the confirmation has to say.
+  let ids;
+  if (status.state === "covered") {
+    const parent = status.coveredBy;
+    ids = [parent.id].filter(Boolean);
+    if (!ids.length) return;
+    if (!confirm(fmt("dnsDeleteCoverConfirm", [parent.name, host]))) return;
+  } else {
+    ids = status.records.map(r => r.id).filter(Boolean);
+    if (!confirm(fmt("dnsDeleteConfirm", [host, ids.length]))) return;
+  }
 
   const result = await chrome.runtime.sendMessage({
     type: "DELETE_STATIC_DNS",

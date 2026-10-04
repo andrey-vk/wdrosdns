@@ -237,14 +237,17 @@ which record covers it:
   because they cannot be managed from the extension.
 
 The toolbar icon badge shows the same state for the current tab's host: `✓` in DNS, `!` disabled,
-`✕` not in DNS, `?` no data yet.
+no badge text when not in DNS (icon only), `?` no data yet.
 
 The router is not polled for this. The list of static records is kept in `chrome.storage.session`
 and is read from there for the badge and the popup. It is loaded when the popup first opens with
 nothing cached, when you press the refresh button, and after an add. An add also updates the
 cache, so the router is not asked again just to confirm what was written.
 
-Deleting removes every record with the host's name from the router, after a confirmation.
+Deleting removes every record with the host's name from the router, after a confirmation. When the
+host is covered by a parent record, the button deletes that parent instead; the confirmation says
+which other subdomains it covers as well. The status line names the tab's host, which can be more
+specific than the base domain shown in the Domain field.
 
 ## Adding a domain twice
 

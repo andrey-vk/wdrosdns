@@ -7,6 +7,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-10-04
+
+### Changed
+
+- The toolbar badge shows no text for hosts that are not in DNS; only the icon remains.
+- The status line names the tab's host. For a host covered by a parent record, the delete button
+  removes the parent, with a confirmation that lists the subdomains it also covers.
+
 ## [0.8.1] - 2026-10-04
 
 ### Changed

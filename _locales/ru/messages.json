@@ -574,5 +574,19 @@
   },
   "dnsRefreshFailed": {
     "message": "Не удалось обновить список DNS"
+  },
+  "dnsDeleteCover": {
+    "message": "Удалить запись-родителя"
+  },
+  "dnsDeleteCoverConfirm": {
+    "message": "Удалить запись «$1» с роутера? У неё включён match-subdomain, поэтому она покрывает и $2, и все остальные поддомены «$1».",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
   }
 }

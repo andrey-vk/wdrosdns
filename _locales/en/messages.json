@@ -574,5 +574,19 @@
   },
   "dnsRefreshFailed": {
     "message": "Could not refresh the DNS list"
+  },
+  "dnsDeleteCover": {
+    "message": "Delete covering record"
+  },
+  "dnsDeleteCoverConfirm": {
+    "message": "Delete \"$1\" from the router? It has match-subdomain, so it also covers $2 and every other subdomain of $1.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
   }
 }
