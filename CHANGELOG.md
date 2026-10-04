@@ -7,6 +7,13 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-10-04
+
+### Changed
+
+- The README files link to the Chrome Web Store listing. No extension code changed; this release
+  exists so that the Chrome Web Store accepts a new version number.
+
 ## [0.8.0] - 2026-10-04
 
 ### Added
